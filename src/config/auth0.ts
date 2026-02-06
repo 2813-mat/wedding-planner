@@ -9,5 +9,9 @@ export const auth0Config = {
 };
 
 export const apiConfig = {
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3013",
+  // Em desenvolvimento, SEMPRE usa o proxy do Vite (/api) para evitar CORS
+  // Em produção, usa a URL completa da API
+  baseURL: import.meta.env.DEV 
+    ? "/api" 
+    : (import.meta.env.VITE_API_BASE_URL || "http://localhost:3013"),
 };

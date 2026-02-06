@@ -14,6 +14,7 @@ import GiftsPage from "./pages/GiftsPage";
 import HoneymoonPage from "./pages/HoneymoonPage";
 import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/LoginPage";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import { EntryRoute } from "./routes/EntryRoute";
 
 const queryClient = new QueryClient();
@@ -25,11 +26,20 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          {/* Rota raiz - redireciona para /login ou /home */}
+          <Route path="/" element={<EntryRoute />} />
+
           {/* pública */}
           <Route path="/login" element={<LoginPage />} />
 
           {/* privadas */}
-          <Route element={<AppLayout />}>
+          <Route
+            element={
+              <ProtectedRoute>
+                <AppLayout />
+              </ProtectedRoute>
+            }
+          >
             <Route path="/home" element={<HomePage />} />
             <Route path="/resumo" element={<DashboardPage />} />
             <Route path="/convidados" element={<GuestsPage />} />

@@ -1,25 +1,88 @@
 import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect } from "react";
 import { Button } from "../components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../components/ui/card";
+import { Card, CardContent } from "../components/ui/card";
 import { Heart, Loader } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import api, { setAccessToken } from "../services/api";
 
 export default function LoginPage() {
-  const { loginWithRedirect, isLoading, isAuthenticated } = useAuth0();
+  const {
+    loginWithRedirect,
+    isLoading,
+    isAuthenticated,
+    getAccessTokenSilently,
+  } = useAuth0();
+
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate("/home", { replace: true });
+    if (isAuthenticated && !isLoading) {
+      const initAuth = async () => {
+        try {
+          const tokenResponse = await getAccessTokenSilently({
+            authorizationParams: {
+              audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+              scope: "openid profile email",
+            },
+            detailedResponse: true,
+          });
+
+          const token =
+            typeof tokenResponse === "string"
+              ? tokenResponse
+              : tokenResponse.access_token;
+
+          console.log("🔑 Token obtido do Auth0:", {
+            tokenLength: token?.length,
+            tokenPreview: token ? `${token.substring(0, 20)}...` : "N/A",
+          });
+
+          setAccessToken(token);
+
+          console.log("📤 Enviando requisição para /auth/sync-user...");
+
+          try {
+            const response = await api.post("/auth/sync-user");
+            console.log("✅ Usuário sincronizado com sucesso:", response.data);
+          } catch (syncError: any) {
+            console.error("❌ Erro ao sincronizar usuário:", {
+              status: syncError.response?.status,
+              statusText: syncError.response?.statusText,
+              data: syncError.response?.data,
+              message: syncError.message,
+            });
+            throw syncError; // Re-lança o erro para ser tratado no catch externo
+          }
+
+          navigate("/home", { replace: true });
+        } catch (err: any) {
+          console.error("Erro na sincronização pós-login:", err);
+
+          if (
+            err?.error === "login_required" ||
+            err?.error === "consent_required"
+          ) {
+            loginWithRedirect({
+              authorizationParams: {
+                audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+              },
+            });
+          } else {
+            alert("Falha ao autenticar. Tente novamente.");
+          }
+        }
+      };
+
+      initAuth();
     }
-  }, [isAuthenticated, isLoading, navigate]);
+  }, [
+    isAuthenticated,
+    isLoading,
+    getAccessTokenSilently,
+    navigate,
+    loginWithRedirect,
+  ]);
 
   if (isLoading) {
     return (
