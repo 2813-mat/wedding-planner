@@ -4,7 +4,6 @@ import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Link } from "react-router-dom";
 
-// Wedding date - customize this
 const WEDDING_DATE = new Date("2025-10-18T16:00:00");
 
 interface TimeLeft {
@@ -167,4 +166,3 @@ export default function HomePage() {
     </div>
   );
 }
-

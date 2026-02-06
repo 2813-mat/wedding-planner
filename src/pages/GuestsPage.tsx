@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Users, Search, Filter, UserCheck, UserX, Clock } from "lucide-react";
+import { Users, Search, Filter, UserCheck, UserX, Clock, Loader } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
+import { useGuests } from "../hooks/useGuests";
 
 type GuestStatus = "confirmado" | "pendente" | "nao_vai";
 type GuestCategory = "familia_noiva" | "familia_noivo" | "amigos" | "trabalho";
@@ -31,99 +32,6 @@ interface Guest {
   status: GuestStatus;
   guests: number;
 }
-
-const guests: Guest[] = [
-  {
-    id: 1,
-    name: "Maria Silva",
-    email: "maria..email.com",
-    phone: "(11) 99999-1111",
-    category: "familia_noiva",
-    status: "confirmado",
-    guests: 2,
-  },
-  {
-    id: 2,
-    name: "João Santos",
-    email: "joao..email.com",
-    phone: "(11) 99999-2222",
-    category: "familia_noivo",
-    status: "confirmado",
-    guests: 3,
-  },
-  {
-    id: 3,
-    name: "Ana Oliveira",
-    email: "ana..email.com",
-    phone: "(11) 99999-3333",
-    category: "amigos",
-    status: "pendente",
-    guests: 1,
-  },
-  {
-    id: 4,
-    name: "Pedro Costa",
-    email: "pedro..email.com",
-    phone: "(11) 99999-4444",
-    category: "trabalho",
-    status: "confirmado",
-    guests: 2,
-  },
-  {
-    id: 5,
-    name: "Carla Mendes",
-    email: "carla..email.com",
-    phone: "(11) 99999-5555",
-    category: "amigos",
-    status: "nao_vai",
-    guests: 0,
-  },
-  {
-    id: 6,
-    name: "Roberto Lima",
-    email: "roberto..email.com",
-    phone: "(11) 99999-6666",
-    category: "familia_noiva",
-    status: "confirmado",
-    guests: 4,
-  },
-  {
-    id: 7,
-    name: "Fernanda Souza",
-    email: "fernanda..email.com",
-    phone: "(11) 99999-7777",
-    category: "familia_noivo",
-    status: "pendente",
-    guests: 2,
-  },
-  {
-    id: 8,
-    name: "Lucas Ferreira",
-    email: "lucas..email.com",
-    phone: "(11) 99999-8888",
-    category: "amigos",
-    status: "confirmado",
-    guests: 1,
-  },
-  {
-    id: 9,
-    name: "Juliana Alves",
-    email: "juliana..email.com",
-    phone: "(11) 99999-9999",
-    category: "trabalho",
-    status: "pendente",
-    guests: 2,
-  },
-  {
-    id: 10,
-    name: "Marcos Ribeiro",
-    email: "marcos..email.com",
-    phone: "(11) 99999-0000",
-    category: "amigos",
-    status: "confirmado",
-    guests: 2,
-  },
-];
 
 const categoryLabels: Record<GuestCategory, string> = {
   familia_noiva: "Família da Noiva",
@@ -142,9 +50,28 @@ const statusConfig: Record<
 };
 
 export default function GuestsPage() {
+  const { data: guests = [], isLoading, error } = useGuests();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <Loader className="h-8 w-8 animate-spin text-pink-500" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-6xl">
+        <div className="rounded-lg bg-destructive/10 p-4 text-destructive">
+          Erro ao carregar convidados. Verifique sua conexão com a API.
+        </div>
+      </div>
+    );
+  }
 
   const filteredGuests = guests.filter((guest) => {
     const matchesSearch = guest.name

@@ -6,6 +6,7 @@ import {
   FileText,
   Check,
   Circle,
+  Loader,
 } from "lucide-react";
 import {
   Card,
@@ -15,21 +16,7 @@ import {
 } from "../components/ui/card";
 import { Checkbox } from "../components/ui/checkbox";
 import { useState } from "react";
-
-interface Destination {
-  name: string;
-  country: string;
-  dates: string;
-  image: string;
-  description: string;
-}
-
-interface Hotel {
-  name: string;
-  location: string;
-  dates: string;
-  confirmed: boolean;
-}
+import { useHoneymoon } from "../hooks/useHoneymoon";
 
 interface DocumentItem {
   id: number;
@@ -37,123 +24,49 @@ interface DocumentItem {
   completed: boolean;
 }
 
-const destination: Destination = {
-  name: "Maldivas",
-  country: "Ásia",
-  dates: "19 Out - 30 Out 2025",
-  image:
-    "https://images.unsplash.com/photo-1514282401047-d79a71a590e8?w=1200&h=600&fit=crop",
-  description:
-    "12 dias em um paraíso tropical com águas cristalinas, bangalôs sobre as águas e experiências inesquecíveis.",
-};
-
-const hotels: Hotel[] = [
-  {
-    name: "Soneva Fushi Resort",
-    location: "Baa Atoll",
-    dates: "19 Out - 25 Out",
-    confirmed: true,
-  },
-  {
-    name: "COMO Cocoa Island",
-    location: "South Malé Atoll",
-    dates: "25 Out - 30 Out",
-    confirmed: true,
-  },
-];
-
-const itinerary = [
-  {
-    day: 1,
-    date: "19 Out",
-    activities: [
-      "Chegada em Malé",
-      "Transfer de hidroavião para Baa Atoll",
-      "Check-in no Soneva Fushi",
-    ],
-  },
-  {
-    day: 2,
-    date: "20 Out",
-    activities: [
-      "Café da manhã no bangalô",
-      "Mergulho no recife de coral",
-      "Jantar romântico na praia",
-    ],
-  },
-  {
-    day: 3,
-    date: "21 Out",
-    activities: [
-      "Passeio de barco ao banco de areia",
-      "Snorkeling com tartarugas",
-      "Spa de casais",
-    ],
-  },
-  {
-    day: 4,
-    date: "22 Out",
-    activities: ["Dia livre no resort", "Piquenique em ilha deserta"],
-  },
-  {
-    day: 5,
-    date: "23 Out",
-    activities: ["Aula de culinária maldívia", "Mergulho com tubarões-baleia"],
-  },
-  {
-    day: 6,
-    date: "24 Out",
-    activities: ["Nascer do sol de paddleboard", "Último dia no Soneva Fushi"],
-  },
-  {
-    day: 7,
-    date: "25 Out",
-    activities: [
-      "Transfer para South Malé Atoll",
-      "Check-in no COMO Cocoa Island",
-      "Jantar de frutos do mar",
-    ],
-  },
-  {
-    day: 8,
-    date: "26 Out",
-    activities: ["Café flutuante no oceano", "Tratamento Ayurveda no spa"],
-  },
-  {
-    day: 9,
-    date: "27 Out",
-    activities: ["Pesca tradicional", "Cinema sob as estrelas"],
-  },
-  {
-    day: 10,
-    date: "28 Out",
-    activities: ["Excursão de golfinhos", "Jantar privativo no bangalô"],
-  },
-  {
-    day: 11,
-    date: "29 Out",
-    activities: ["Dia de relaxamento", "Última noite especial"],
-  },
-  {
-    day: 12,
-    date: "30 Out",
-    activities: ["Check-out", "Transfer para Malé", "Voo de retorno"],
-  },
-];
-
-const initialDocuments: DocumentItem[] = [
-  { id: 1, title: "Passaportes válidos", completed: true },
-  { id: 2, title: "Visto de entrada (se necessário)", completed: true },
-  { id: 3, title: "Reservas de hotel confirmadas", completed: true },
-  { id: 4, title: "Passagens aéreas", completed: true },
-  { id: 5, title: "Seguro viagem internacional", completed: false },
-  { id: 6, title: "Vacinas obrigatórias", completed: false },
-  { id: 7, title: "Cópias de documentos", completed: false },
-  { id: 8, title: "Cartões de crédito internacionais", completed: true },
-];
-
 export default function HoneymoonPage() {
-  const [documents, setDocuments] = useState(initialDocuments);
+  const { data: honeymoons = [], isLoading, error } = useHoneymoon();
+  const [documents, setDocuments] = useState<DocumentItem[]>([]);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <Loader className="h-8 w-8 animate-spin text-pink-500" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="mx-auto max-w-6xl">
+        <div className="rounded-lg bg-destructive/10 p-4 text-destructive">
+          Erro ao carregar informações da lua de mel. Verifique sua conexão com
+          a API.
+        </div>
+      </div>
+    );
+  }
+
+  const honeymoon = honeymoons[0];
+
+  if (!honeymoon) {
+    return (
+      <div className="mx-auto max-w-6xl">
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">
+            Nenhuma lua de mel planejada ainda.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  const destination = honeymoon;
+
+  const startDate = honeymoon.startDate;
+  const endDate = honeymoon.endDate;
+
+  const dates = `${startDate} - ${endDate}`;
 
   const toggleDocument = (id: number) => {
     setDocuments((prev) =>
@@ -188,17 +101,13 @@ export default function HoneymoonPage() {
             />
             <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
             <div className="absolute bottom-0 left-0 right-0 p-6 text-primary-foreground">
-              <div className="flex items-center gap-2 text-sm opacity-90">
-                <MapPin className="h-4 w-4" />
-                {destination.country}
-              </div>
               <h2 className="font-display text-4xl font-semibold">
                 {destination.name}
               </h2>
               <div className="mt-2 flex items-center gap-4 text-sm opacity-90">
                 <div className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
-                  {destination.dates}
+                  {dates}
                 </div>
                 <div className="flex items-center gap-1">
                   <Plane className="h-4 w-4" />
@@ -206,7 +115,7 @@ export default function HoneymoonPage() {
                 </div>
               </div>
               <p className="mt-3 max-w-2xl text-sm opacity-80">
-                {destination.description}
+                {destination.notes}
               </p>
             </div>
           </div>
@@ -223,7 +132,7 @@ export default function HoneymoonPage() {
                 Hospedagens
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            {/* <CardContent className="space-y-4">
               {hotels.map((hotel, index) => (
                 <div
                   key={index}
@@ -246,7 +155,7 @@ export default function HoneymoonPage() {
                   )}
                 </div>
               ))}
-            </CardContent>
+            </CardContent> */}
           </Card>
         </section>
 
@@ -294,7 +203,7 @@ export default function HoneymoonPage() {
         </section>
       </div>
 
-      {/* Itinerary */}
+      {/* Itinerary
       <section
         className="mt-6 animate-fade-up"
         style={{ animationDelay: "0.3s" }}
@@ -308,13 +217,13 @@ export default function HoneymoonPage() {
           </CardHeader>
           <CardContent>
             <div className="relative">
-              {/* Timeline line */}
+              
               <div className="absolute left-4 top-2 bottom-2 w-px bg-border" />
 
               <div className="space-y-6">
                 {itinerary.map((day, index) => (
                   <div key={index} className="relative pl-10">
-                    {/* Timeline dot */}
+                  
                     <div className="absolute left-2.5 top-1 h-3 w-3 rounded-full border-2 border-primary bg-background" />
 
                     <div>
@@ -343,7 +252,7 @@ export default function HoneymoonPage() {
           </CardContent>
         </Card>
       </section>
+      */}
     </div>
   );
 }
-
