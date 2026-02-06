@@ -14,9 +14,10 @@ import { useState } from "react";
 import { useIsMobile } from "../../hooks/use-mobile";
 import { Button } from "../ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "../ui/sheet";
+import { Outlet } from "react-router-dom";
 
 const navItems = [
-  { title: "Início", url: "/", icon: Home },
+  { title: "Início", url: "/home", icon: Home },
   { title: "Resumo", url: "/resumo", icon: Heart },
   { title: "Convidados", url: "/convidados", icon: Users },
   { title: "Checklist", url: "/checklist", icon: CheckSquare },
@@ -26,11 +27,7 @@ const navItems = [
   { title: "Lua de Mel", url: "/lua-de-mel", icon: Plane },
 ];
 
-interface AppLayoutProps {
-  children: React.ReactNode;
-}
-
-export function AppLayout({ children }: AppLayoutProps) {
+export function AppLayout() {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
 
@@ -39,7 +36,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <div className="mb-6 px-3">
         <div className="flex items-center gap-2">
           <Heart className="h-6 w-6 text-primary" fill="currentColor" />
-          <span className="font-display text-xl font-semibold text-foreground">
+          <span className="font-display text-xl font-semibold">
             Nosso Casamento
           </span>
         </div>
@@ -50,9 +47,8 @@ export function AppLayout({ children }: AppLayoutProps) {
         <NavLink
           key={item.url}
           to={item.url}
-          end={item.url === "/"}
           className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:bg-accent hover:text-accent-foreground"
-          activeClassName="bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground"
+          activeClassName="bg-primary text-primary-foreground"
           onClick={() => setOpen(false)}
         >
           <item.icon className="h-4 w-4" />
@@ -72,6 +68,7 @@ export function AppLayout({ children }: AppLayoutProps) {
               Nosso Casamento
             </span>
           </div>
+
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
@@ -83,7 +80,10 @@ export function AppLayout({ children }: AppLayoutProps) {
             </SheetContent>
           </Sheet>
         </header>
-        <main className="p-4">{children}</main>
+
+        <main className="p-4">
+          <Outlet />
+        </main>
       </div>
     );
   }
@@ -93,8 +93,10 @@ export function AppLayout({ children }: AppLayoutProps) {
       <aside className="sticky top-0 h-screen w-64 border-r bg-sidebar">
         <NavContent />
       </aside>
-      <main className="flex-1 p-8">{children}</main>
+
+      <main className="flex-1 p-8">
+        <Outlet />
+      </main>
     </div>
   );
 }
-

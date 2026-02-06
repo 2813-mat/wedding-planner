@@ -13,6 +13,8 @@ import VendorsPage from "./pages/VendorsPage";
 import GiftsPage from "./pages/GiftsPage";
 import HoneymoonPage from "./pages/HoneymoonPage";
 import NotFound from "./pages/NotFound";
+import LoginPage from "./pages/LoginPage";
+import { EntryRoute } from "./routes/EntryRoute";
 
 const queryClient = new QueryClient();
 
@@ -22,9 +24,13 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <AppLayout>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
+        <Routes>
+          {/* pública */}
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* privadas */}
+          <Route element={<AppLayout />}>
+            <Route path="/home" element={<HomePage />} />
             <Route path="/resumo" element={<DashboardPage />} />
             <Route path="/convidados" element={<GuestsPage />} />
             <Route path="/checklist" element={<ChecklistPage />} />
@@ -32,9 +38,10 @@ const App = () => (
             <Route path="/fornecedores" element={<VendorsPage />} />
             <Route path="/presentes" element={<GiftsPage />} />
             <Route path="/lua-de-mel" element={<HoneymoonPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AppLayout>
+          </Route>
+
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

@@ -9,15 +9,17 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Heart, Loader } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
   const { loginWithRedirect, isLoading, isAuthenticated } = useAuth0();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isAuthenticated) {
-      window.location.href = "/resumo";
+      navigate("/home", { replace: true });
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isLoading, navigate]);
 
   if (isLoading) {
     return (
@@ -28,45 +30,40 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50 p-4">
-      <Card className="w-full max-w-md border-2 border-pink-100 shadow-xl">
-        <CardHeader className="space-y-2 text-center">
-          <div className="flex justify-center">
-            <Heart className="h-12 w-12 fill-pink-500 text-pink-500" />
+    <div className="flex min-h-screen items-center justify-center bg-background">
+      <Card className="w-full max-w-sm border-0 shadow-lg">
+        <CardContent className="p-8 text-center space-y-6">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-accent">
+            <Heart className="h-6 w-6 text-primary" fill="currentColor" />
           </div>
-          <CardTitle className="text-3xl">Wedding Planner</CardTitle>
-          <CardDescription>
-            Organize seu casamento de forma fácil
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-center text-sm text-gray-600">
-            Faça login com sua conta Auth0 para começar
-          </p>
-          <Button
-            onClick={() => loginWithRedirect()}
-            className="w-full h-10 bg-pink-500 hover:bg-pink-600 text-white font-semibold"
-            size="lg"
-          >
-            Entrar com Auth0
+
+          <div>
+            <h1 className="font-display text-2xl font-semibold">
+              Wedding Planner
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Organize seu casamento de forma fácil
+            </p>
+          </div>
+
+          <Button onClick={() => loginWithRedirect()} className="w-full">
+            Entrar
           </Button>
+
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+              <span className="w-full border-t" />
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-2 text-gray-500">ou</span>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                ou
+              </span>
             </div>
           </div>
           <Button
-            onClick={() =>
-              loginWithRedirect({
-                authorizationParams: { screen_hint: "signup" },
-              })
-            }
+            onClick={() => loginWithRedirect()}
             variant="outline"
-            className="w-full h-10 border-2 border-pink-500 text-pink-600 hover:bg-pink-50"
-            size="lg"
+            className="w-full"
           >
             Criar nova conta
           </Button>
