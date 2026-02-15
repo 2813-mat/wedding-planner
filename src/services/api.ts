@@ -18,7 +18,6 @@ const api: AxiosInstance = axios.create({
 console.log("⚙️ Configuração da API:", {
   baseURL: apiConfig.baseURL,
   ambiente: import.meta.env.DEV ? "desenvolvimento" : "produção",
-  proxyAtivo: import.meta.env.DEV ? "Sim (via /api)" : "Não",
 });
 
 api.interceptors.request.use(
