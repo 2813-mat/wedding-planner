@@ -3,6 +3,7 @@ import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Button } from "../components/ui/button";
 import { useGifts } from "../hooks/useGifts";
+import { CreateGiftModal } from "../components/gifts/CreateGiftModal";
 
 export default function GiftsPage() {
   const { data: gifts = [], isLoading, error } = useGifts();
@@ -25,18 +26,31 @@ export default function GiftsPage() {
     );
   }
 
+  if (!gifts) {
+    return (
+      <div className="mx-auto max-w-6xl">
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Nenhum presente criado ainda.</p>
+        </div>
+      </div>
+    );
+  }
+
   const reservedCount = gifts.filter((g) => g.purchased).length;
   const availableCount = gifts.filter((g) => !g.purchased).length;
 
   return (
     <div className="mx-auto max-w-6xl">
-      <header className="mb-8 animate-fade-up">
-        <h1 className="font-display text-4xl font-semibold">
-          Lista de Presentes
-        </h1>
-        <p className="mt-1 text-muted-foreground">
-          Escolha um presente especial para os noivos
-        </p>
+      <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-up">
+        <div>
+          <h1 className="font-display text-4xl font-semibold">
+            Lista de Presentes
+          </h1>
+          <p className="mt-1 text-muted-foreground">
+            Escolha um presente especial para os noivos
+          </p>
+        </div>
+        <CreateGiftModal />
       </header>
 
       {/* Stats */}
@@ -156,4 +170,3 @@ export default function GiftsPage() {
     </div>
   );
 }
-
