@@ -53,7 +53,6 @@ export default function GiftsPage() {
         <CreateGiftModal />
       </header>
 
-      {/* Stats */}
       <section
         className="mb-8 flex flex-wrap gap-4 animate-fade-up"
         style={{ animationDelay: "0.1s" }}
@@ -95,7 +94,6 @@ export default function GiftsPage() {
         </Card>
       </section>
 
-      {/* Category Filter */}
       <section
         className="mb-6 flex flex-wrap gap-2 animate-fade-up"
         style={{ animationDelay: "0.15s" }}

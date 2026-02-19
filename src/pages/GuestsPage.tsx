@@ -1,5 +1,13 @@
 import { useState } from "react";
-import { Users, Search, Filter, UserCheck, UserX, Clock, Loader } from "lucide-react";
+import {
+  Users,
+  Search,
+  Filter,
+  UserCheck,
+  UserX,
+  Clock,
+  Loader,
+} from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
@@ -19,35 +27,8 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { useGuests } from "../hooks/useGuests";
-
-type GuestStatus = "confirmado" | "pendente" | "nao_vai";
-type GuestCategory = "familia_noiva" | "familia_noivo" | "amigos" | "trabalho";
-
-interface Guest {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  category: GuestCategory;
-  status: GuestStatus;
-  guests: number;
-}
-
-const categoryLabels: Record<GuestCategory, string> = {
-  familia_noiva: "Família da Noiva",
-  familia_noivo: "Família do Noivo",
-  amigos: "Amigos",
-  trabalho: "Trabalho",
-};
-
-const statusConfig: Record<
-  GuestStatus,
-  { label: string; variant: "default" | "secondary" | "destructive" }
-> = {
-  confirmado: { label: "Confirmado", variant: "default" },
-  pendente: { label: "Pendente", variant: "secondary" },
-  nao_vai: { label: "Não vai", variant: "destructive" },
-};
+import { CreateGiftModal } from "../components/gifts/CreateGiftModal";
+import { CreateGuestModal } from "../components/guests/CreateGuestModal";
 
 export default function GuestsPage() {
   const { data: guests = [], isLoading, error } = useGuests();
@@ -74,33 +55,46 @@ export default function GuestsPage() {
   }
 
   const filteredGuests = guests.filter((guest) => {
-    const matchesSearch = guest.name
+    const matchesSearch = guest.fullName
       .toLowerCase()
       .includes(searchTerm.toLowerCase());
+
     const matchesCategory =
-      categoryFilter === "all" || guest.category === categoryFilter;
+      categoryFilter === "all" || guest.groupName === categoryFilter;
+
     const matchesStatus =
-      statusFilter === "all" || guest.status === statusFilter;
+      statusFilter === "all" ||
+      (statusFilter === "confirmado" && guest.confirmed === 1) ||
+      (statusFilter === "pendente" && guest.confirmed === 0) ||
+      (statusFilter === "nao_vai" && guest.confirmed === -1);
+
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
   const stats = {
     total: guests.length,
-    confirmed: guests.filter((g) => g.status === "confirmado").length,
-    pending: guests.filter((g) => g.status === "pendente").length,
-    declined: guests.filter((g) => g.status === "nao_vai").length,
-    totalGuests: guests.reduce((sum, g) => sum + g.guests, 0),
+    confirmed: guests.filter((g) => g.confirmed === 1).length,
+    pending: guests.filter((g) => g.confirmed === 0).length,
+    declined: guests.filter((g) => g.confirmed === -1).length,
+    totalGuests: guests.reduce(
+      (sum, g) => sum + (g.adults ?? 0) + (g.children ?? 0),
+      0,
+    ),
   };
 
   return (
     <div className="mx-auto max-w-6xl">
-      <header className="mb-8 animate-fade-up">
-        <h1 className="font-display text-4xl font-semibold">
-          Lista de Convidados
-        </h1>
-        <p className="mt-1 text-muted-foreground">
-          Gerencie todos os convidados do casamento
-        </p>
+      <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between animate-fade-up">
+        <div>
+          <h1 className="font-display text-4xl font-semibold">
+            Lista de Convidados
+          </h1>
+          <p className="mt-1 text-muted-foreground">
+            Gerencie todos os convidados do casamento
+          </p>
+        </div>
+
+        <CreateGuestModal />
       </header>
 
       {/* Stats */}
@@ -219,7 +213,9 @@ export default function GuestsPage() {
             <TableBody>
               {filteredGuests.map((guest) => (
                 <TableRow key={guest.id}>
-                  <TableCell className="font-medium">{guest.name}</TableCell>
+                  <TableCell className="font-medium">
+                    {guest.fullName}
+                  </TableCell>
                   <TableCell className="hidden md:table-cell text-muted-foreground">
                     {guest.email}
                   </TableCell>
@@ -228,15 +224,29 @@ export default function GuestsPage() {
                   </TableCell>
                   <TableCell>
                     <span className="text-sm text-muted-foreground">
-                      {categoryLabels[guest.category]}
+                      {guest.groupName}
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={statusConfig[guest.status].variant}>
-                      {statusConfig[guest.status].label}
+                    <Badge
+                      variant={
+                        guest.confirmed === 1
+                          ? "default"
+                          : guest.confirmed === 0
+                            ? "secondary"
+                            : "destructive"
+                      }
+                    >
+                      {guest.confirmed === 1
+                        ? "Confirmado"
+                        : guest.confirmed === 0
+                          ? "Pendente"
+                          : "Não vai"}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right">{guest.guests}</TableCell>
+                  <TableCell className="text-right">
+                    {guest.adults + guest.children}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -246,4 +256,3 @@ export default function GuestsPage() {
     </div>
   );
 }
-

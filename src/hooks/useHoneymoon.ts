@@ -2,14 +2,21 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   honeymoonService,
   type CreateHoneymoonDTO,
+  type Honeymoon,
+  type HoneymoonViewModel,
 } from "../services/honeymoonService";
 
 const HONEYMOON_QUERY_KEY = ["honeymoon"];
 
 export const useHoneymoon = () => {
-  return useQuery({
+  return useQuery<Honeymoon[], Error, HoneymoonViewModel[]>({
     queryKey: HONEYMOON_QUERY_KEY,
-    queryFn: () => honeymoonService.getAll(),
+    queryFn: honeymoonService.getAll,
+    select: (data) =>
+      data.map((item) => ({
+        ...item,
+        budget: Number(item.budget),
+      })),
   });
 };
 

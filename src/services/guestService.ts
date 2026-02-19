@@ -1,22 +1,33 @@
 import api from "./api";
 
 export interface Guest {
-  id: number;
-  name: string;
+  id: string;
+  weddingId: string;
+  userId: string | null;
+  fullName: string;
   email: string;
   phone: string;
-  category: "familia_noiva" | "familia_noivo" | "amigos" | "trabalho";
-  status: "confirmado" | "pendente" | "nao_vai";
-  guests: number;
+  relation: string;
+  groupName: string;
+  plusOne: boolean;
+  confirmed: number;
+  adults: number;
+  children: number;
+  invitationSentAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateGuestDTO {
-  name: string;
-  email: string;
-  phone: string;
-  category: "familia_noiva" | "familia_noivo" | "amigos" | "trabalho";
-  status?: "confirmado" | "pendente" | "nao_vai";
-  guests?: number;
+  fullName: string;
+  email?: string;
+  phone?: string;
+  relation?: string;
+  groupName?: string;
+  plusOne?: boolean;
+  confirmed?: number;
+  adults?: number;
+  children?: number;
 }
 
 export const guestService = {

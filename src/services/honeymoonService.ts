@@ -1,16 +1,16 @@
 import api from "./api";
 
 export interface Honeymoon {
-  id: number;
+  id: string;
+  weddingId: string;
   destination: string;
-  name: string;
-  startDate: string;
-  endDate: string;
-  budget: number;
-  spent: number;
+  departureDate: string;
+  returnDate: string;
+  budget: string;
   notes?: string;
   status: "planejando" | "confirmado" | "em_progresso" | "concluido";
-  image: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface CreateHoneymoonDTO {
@@ -21,6 +21,10 @@ export interface CreateHoneymoonDTO {
   spent?: number;
   notes?: string;
   status?: "planejando" | "confirmado" | "em_progresso" | "concluido";
+}
+
+export interface HoneymoonViewModel extends Omit<Honeymoon, "budget"> {
+  budget: number;
 }
 
 export const honeymoonService = {
