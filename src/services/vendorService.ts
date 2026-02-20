@@ -11,6 +11,7 @@ export interface Vendor {
   price: number;
   status: "cotando" | "contratado" | "pago" | "cancelado";
   notes: string;
+  createdAt: string;
 }
 
 export interface CreateVendorDTO {

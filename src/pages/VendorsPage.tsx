@@ -2,7 +2,6 @@ import {
   Store,
   Phone,
   Mail,
-  Star,
   Check,
   Clock,
   FileText,
@@ -18,6 +17,9 @@ import { Badge } from "../components/ui/badge";
 import { Skeleton } from "../components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { useVendors } from "../hooks/useVendors";
+import { VendorStatusFilter } from "../components/vendors/VendorStatusFilter";
+import { CreateVendorModal } from "../components/vendors/CreateVendorModal";
+import { useState } from "react";
 
 const statusConfig = {
   cotando: {
@@ -59,9 +61,24 @@ const categoryColors = {
 export default function VendorsPage() {
   const { data: vendors = [], isLoading, isError, error } = useVendors();
 
+  const [statusFilter, setStatusFilter] = useState<
+    "todos" | "cotando" | "contratado" | "pago" | "cancelado"
+  >("todos");
+
+  const sortedVendors = [...vendors].sort(
+    (a, b) =>
+      new Date(b.createdAt ?? b.id).getTime() -
+      new Date(a.createdAt ?? a.id).getTime(),
+  );
+
+  const filteredVendors =
+    statusFilter === "todos"
+      ? sortedVendors
+      : sortedVendors.filter((vendor) => vendor.status === statusFilter);
+
   const contracted = vendors.filter((v) => v.status === "contratado").length;
   const negotiating = vendors.filter((v) => v.status === "cotando").length;
-  const quoted = vendors.filter((v) => v.status === "cotando").length;
+  const paid = vendors.filter((v) => v.status === "pago").length;
 
   if (isLoading) {
     return (
@@ -113,17 +130,25 @@ export default function VendorsPage() {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <header className="mb-8 animate-fade-up">
-        <h1 className="font-display text-4xl font-semibold">Fornecedores</h1>
-        <p className="mt-1 text-muted-foreground">
-          Gerencie todos os parceiros do casamento
-        </p>
+      <header className="mb-8 space-y-4">
+        <div>
+          <h1 className="font-display text-4xl font-semibold">Fornecedores</h1>
+          <p className="text-muted-foreground">
+            Gerencie todos os parceiros do casamento
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <VendorStatusFilter
+            value={statusFilter}
+            onFilterChange={setStatusFilter}
+          />
+          <CreateVendorModal />
+        </div>
       </header>
 
-      <section
-        className="mb-8 grid gap-4 sm:grid-cols-3 animate-fade-up"
-        style={{ animationDelay: "0.1s" }}
-      >
+      {/* 🔥 CARDS RESUMO */}
+      <section className="mb-8 grid gap-4 sm:grid-cols-3">
         <Card className="border-0 shadow-sm">
           <CardContent className="flex items-center gap-4 p-4">
             <div className="rounded-full bg-success/10 p-2">
@@ -152,24 +177,20 @@ export default function VendorsPage() {
 
         <Card className="border-0 shadow-sm">
           <CardContent className="flex items-center gap-4 p-4">
-            <div className="rounded-full bg-muted p-2">
-              <FileText className="h-5 w-5 text-muted-foreground" />
+            <div className="rounded-full bg-primary/10 p-2">
+              <Check className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-semibold">{quoted}</p>
-              <p className="text-xs text-muted-foreground">
-                Aguardando Orçamento
-              </p>
+              <p className="text-2xl font-semibold">{paid}</p>
+              <p className="text-xs text-muted-foreground">Pagos</p>
             </div>
           </CardContent>
         </Card>
       </section>
 
-      <section
-        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-fade-up"
-        style={{ animationDelay: "0.2s" }}
-      >
-        {vendors.map((vendor) => {
+      {/* 🔥 LISTA FILTRADA E ORDENADA */}
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {filteredVendors.map((vendor) => {
           const status = statusConfig[vendor.status] || statusConfig.cotando;
           const StatusIcon = status.icon;
 
@@ -182,7 +203,11 @@ export default function VendorsPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <span
-                      className={`inline-block rounded-full px-2 py-0.5 text-xs ${categoryColors[vendor.category as keyof typeof categoryColors] || "bg-gray-100 text-gray-800"}`}
+                      className={`inline-block rounded-full px-2 py-0.5 text-xs ${
+                        categoryColors[
+                          vendor.category as keyof typeof categoryColors
+                        ] || "bg-gray-100 text-gray-800"
+                      }`}
                     >
                       {vendor.category}
                     </span>
