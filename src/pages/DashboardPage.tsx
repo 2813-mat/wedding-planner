@@ -13,58 +13,68 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Progress } from "../components/ui/progress";
-
-const stats = [
-  {
-    title: "Convidados",
-    value: "142",
-    subtitle: "89 confirmados",
-    icon: Users,
-    progress: 63,
-    color: "text-primary",
-  },
-  {
-    title: "Tarefas",
-    value: "28/45",
-    subtitle: "62% concluído",
-    icon: CheckSquare,
-    progress: 62,
-    color: "text-success",
-  },
-  {
-    title: "Orçamento",
-    value: "R$ 85.400",
-    subtitle: "de R$ 120.000",
-    icon: DollarSign,
-    progress: 71,
-    color: "text-warning",
-  },
-  {
-    title: "Fornecedores",
-    value: "12",
-    subtitle: "8 contratados",
-    icon: Store,
-    progress: 67,
-    color: "text-primary",
-  },
-];
-
-const nextTasks = [
-  { task: "Confirmar menu com buffet", date: "15 Fev", priority: "alta" },
-  { task: "Prova do vestido", date: "20 Fev", priority: "alta" },
-  { task: "Reunião com fotógrafo", date: "22 Fev", priority: "média" },
-  { task: "Escolher convites", date: "28 Fev", priority: "média" },
-  { task: "Degustação de bolos", date: "05 Mar", priority: "baixa" },
-];
-
-const recentActivity = [
-  { action: "Buffet Gourmet confirmado", time: "Hoje, 14:30" },
-  { action: "3 novos convidados confirmados", time: "Ontem" },
-  { action: "Pagamento da decoração realizado", time: "2 dias atrás" },
-  { action: "Contrato do DJ assinado", time: "3 dias atrás" },
-];
+import { useGuests } from "../hooks/useGuests";
+import { useVendors } from "../hooks/useVendors";
 
 export default function DashboardPage() {
+  const { data: guests = [], isLoading: guestsLoading } = useGuests();
+  const { data: vendors = [], isLoading: vendorsLoading } = useVendors();
+
+  const guestsTotal = guests.length;
+  const guestsConfirmed = guests.filter((g: any) => g.confirmed === 1).length;
+
+  const vendorsTotal = vendors.length;
+  const vendorsContracted = vendors.filter(
+    (v: any) => v.status === "contratado",
+  ).length;
+
+  const hasBudget = false;
+  const nextTasks: Array<any> = [];
+  const recentActivity: Array<any> = [];
+
+  const stats = [
+    {
+      title: "Convidados",
+      value: guestsLoading ? "..." : String(guestsTotal),
+      subtitle: guestsLoading
+        ? "Carregando..."
+        : `${guestsConfirmed} confirmados`,
+      icon: Users,
+      progress: guestsTotal
+        ? Math.round((guestsConfirmed / guestsTotal) * 100)
+        : 0,
+      color: "text-primary",
+    },
+    {
+      title: "Tarefas",
+      value: "-",
+      subtitle: "",
+      icon: CheckSquare,
+      progress: 0,
+      color: "text-muted-foreground",
+    },
+    {
+      title: "Orçamento",
+      value: "-",
+      subtitle: "",
+      icon: DollarSign,
+      progress: 0,
+      color: "text-muted-foreground",
+    },
+    {
+      title: "Fornecedores",
+      value: vendorsLoading ? "..." : String(vendorsTotal),
+      subtitle: vendorsLoading
+        ? "Carregando..."
+        : `${vendorsContracted} contratados`,
+      icon: Store,
+      progress: vendorsTotal
+        ? Math.round((vendorsContracted / vendorsTotal) * 100)
+        : 0,
+      color: "text-primary",
+    },
+  ];
+
   return (
     <div className="mx-auto max-w-6xl">
       <header className="mb-8 animate-fade-up">
@@ -109,30 +119,36 @@ export default function DashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-3">
-                {nextTasks.map((task, index) => (
-                  <li
-                    key={index}
-                    className="flex items-center justify-between rounded-lg bg-muted/50 p-3"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={`h-2 w-2 rounded-full ${
-                          task.priority === "alta"
-                            ? "bg-destructive"
-                            : task.priority === "média"
-                              ? "bg-warning"
-                              : "bg-success"
-                        }`}
-                      />
-                      <span className="text-sm">{task.task}</span>
-                    </div>
-                    <span className="text-xs text-muted-foreground">
-                      {task.date}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+              {nextTasks.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Sem tarefas (checklist não conectado)
+                </p>
+              ) : (
+                <ul className="space-y-3">
+                  {nextTasks.map((task, index) => (
+                    <li
+                      key={index}
+                      className="flex items-center justify-between rounded-lg bg-muted/50 p-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`h-2 w-2 rounded-full ${
+                            task.priority === "alta"
+                              ? "bg-destructive"
+                              : task.priority === "média"
+                                ? "bg-warning"
+                                : "bg-success"
+                          }`}
+                        />
+                        <span className="text-sm">{task.task}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {task.date}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </CardContent>
           </Card>
         </section>
@@ -147,19 +163,25 @@ export default function DashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-4">
-                {recentActivity.map((activity, index) => (
-                  <li key={index} className="flex items-start gap-3">
-                    <div className="mt-1.5 h-2 w-2 rounded-full bg-primary" />
-                    <div className="flex-1">
-                      <p className="text-sm">{activity.action}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {activity.time}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+              {recentActivity.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Sem atividade recente
+                </p>
+              ) : (
+                <ul className="space-y-4">
+                  {recentActivity.map((activity, index) => (
+                    <li key={index} className="flex items-start gap-3">
+                      <div className="mt-1.5 h-2 w-2 rounded-full bg-primary" />
+                      <div className="flex-1">
+                        <p className="text-sm">{activity.action}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {activity.time}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </CardContent>
           </Card>
         </section>
@@ -178,19 +200,28 @@ export default function DashboardPage() {
                   Progresso Geral
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Você está no caminho certo!
+                  {hasBudget
+                    ? "Você está no caminho certo!"
+                    : "Sem dados de orçamento"}
                 </p>
               </div>
               <div className="text-right">
-                <span className="text-3xl font-semibold text-primary">65%</span>
-                <p className="text-xs text-muted-foreground">completo</p>
+                {hasBudget ? (
+                  <>
+                    <span className="text-3xl font-semibold text-primary">
+                      65%
+                    </span>
+                    <p className="text-xs text-muted-foreground">completo</p>
+                  </>
+                ) : (
+                  <span className="text-sm text-muted-foreground">—</span>
+                )}
               </div>
             </div>
-            <Progress value={65} className="h-3" />
+            {hasBudget && <Progress value={65} className="h-3" />}
           </CardContent>
         </Card>
       </section>
     </div>
   );
 }
-
