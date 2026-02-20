@@ -1,4 +1,13 @@
-import { Store, Phone, Mail, Star, Check, Clock, FileText } from "lucide-react";
+import {
+  Store,
+  Phone,
+  Mail,
+  Star,
+  Check,
+  Clock,
+  FileText,
+  AlertCircle,
+} from "lucide-react";
 import {
   Card,
   CardContent,
@@ -6,145 +15,101 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
+import { Skeleton } from "../components/ui/skeleton";
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
+import { useVendors } from "../hooks/useVendors";
 
-type VendorStatus = "contratado" | "negociacao" | "orcamento";
+const statusConfig = {
+  cotando: {
+    label: "Cotando",
+    variant: "secondary" as const,
+    icon: FileText,
+    color: "text-muted-foreground",
+  },
+  contratado: {
+    label: "Contratado",
+    variant: "default" as const,
+    icon: Check,
+    color: "text-success",
+  },
+  pago: {
+    label: "Pago",
+    variant: "outline" as const,
+    icon: Check,
+    color: "text-primary",
+  },
+  cancelado: {
+    label: "Cancelado",
+    variant: "destructive" as const,
+    icon: AlertCircle,
+    color: "text-destructive",
+  },
+} as const;
 
-interface Vendor {
-  id: number;
-  name: string;
-  category: string;
-  contact: string;
-  email: string;
-  phone: string;
-  status: VendorStatus;
-  rating: number;
-  notes: string;
-  price?: string;
-}
-
-const vendors: Vendor[] = [
-  {
-    id: 1,
-    name: "Buffet Gourmet Delícias",
-    category: "Buffet",
-    contact: "Marcela Santos",
-    email: "contato..gourmetdelicias.com.br",
-    phone: "(11) 99999-1234",
-    status: "contratado",
-    rating: 5,
-    notes: "Excelente atendimento, menu personalizado aprovado.",
-    price: "R$ 42.000",
-  },
-  {
-    id: 2,
-    name: "Foto & Arte Studio",
-    category: "Fotografia",
-    contact: "Ricardo Almeida",
-    email: "ricardo..fotoarte.com.br",
-    phone: "(11) 98888-2345",
-    status: "contratado",
-    rating: 5,
-    notes: "Portfólio incrível, já fez o ensaio pré-wedding.",
-    price: "R$ 12.000",
-  },
-  {
-    id: 3,
-    name: "DJ Marcos Sound",
-    category: "Música",
-    contact: "Marcos Lima",
-    email: "marcos..djsound.com.br",
-    phone: "(11) 97777-3456",
-    status: "contratado",
-    rating: 4,
-    notes: "Playlist personalizada em andamento.",
-    price: "R$ 7.500",
-  },
-  {
-    id: 4,
-    name: "Flores & Decoração Maria",
-    category: "Decoração",
-    contact: "Maria Fernanda",
-    email: "contato..floresmaria.com.br",
-    phone: "(11) 96666-4567",
-    status: "contratado",
-    rating: 5,
-    notes: "Proposta de decoração romântica aprovada.",
-    price: "R$ 12.500",
-  },
-  {
-    id: 5,
-    name: "Doces da Vovó",
-    category: "Doces",
-    contact: "Ana Clara",
-    email: "doces..vovo.com.br",
-    phone: "(11) 95555-5678",
-    status: "negociacao",
-    rating: 4,
-    notes: "Aguardando proposta final com quantidade de doces.",
-  },
-  {
-    id: 6,
-    name: "Cerimonial Elegance",
-    category: "Cerimonial",
-    contact: "Patrícia Rocha",
-    email: "patricia..elegance.com.br",
-    phone: "(11) 94444-6789",
-    status: "negociacao",
-    rating: 5,
-    notes: "Segunda reunião agendada para próxima semana.",
-  },
-  {
-    id: 7,
-    name: "Convites Personalizados Art",
-    category: "Papelaria",
-    contact: "Juliana Costa",
-    email: "juliana..artconvites.com.br",
-    phone: "(11) 93333-7890",
-    status: "orcamento",
-    rating: 4,
-    notes: "Aguardando modelos de convite para aprovação.",
-  },
-  {
-    id: 8,
-    name: "Transporte VIP Limousine",
-    category: "Transporte",
-    contact: "Roberto Silva",
-    email: "contato..viplimo.com.br",
-    phone: "(11) 92222-8901",
-    status: "orcamento",
-    rating: 3,
-    notes: "Proposta recebida, avaliando outras opções.",
-  },
-];
-
-const statusConfig: Record<
-  VendorStatus,
-  {
-    label: string;
-    variant: "default" | "secondary" | "outline";
-    icon: typeof Check;
-  }
-> = {
-  contratado: { label: "Contratado", variant: "default", icon: Check },
-  negociacao: { label: "Em Negociação", variant: "secondary", icon: Clock },
-  orcamento: { label: "Orçamento", variant: "outline", icon: FileText },
-};
-
-const categoryColors: Record<string, string> = {
-  Buffet: "bg-primary/10 text-primary",
-  Fotografia: "bg-success/10 text-success",
-  Música: "bg-warning/10 text-warning",
-  Decoração: "bg-accent text-accent-foreground",
-  Doces: "bg-destructive/10 text-destructive",
-  Cerimonial: "bg-primary/10 text-primary",
-  Papelaria: "bg-muted text-muted-foreground",
-  Transporte: "bg-secondary text-secondary-foreground",
-};
+const categoryColors = {
+  buffet: "bg-blue-100 text-blue-800",
+  cerimonia: "bg-purple-100 text-purple-800",
+  decoracao: "bg-pink-100 text-pink-800",
+  fotografia: "bg-green-100 text-green-800",
+  musica: "bg-yellow-100 text-yellow-800",
+  bolo: "bg-orange-100 text-orange-800",
+  outros: "bg-gray-100 text-gray-800",
+} as const;
 
 export default function VendorsPage() {
+  const { data: vendors = [], isLoading, isError, error } = useVendors();
+
   const contracted = vendors.filter((v) => v.status === "contratado").length;
-  const negotiating = vendors.filter((v) => v.status === "negociacao").length;
-  const quoted = vendors.filter((v) => v.status === "orcamento").length;
+  const negotiating = vendors.filter((v) => v.status === "cotando").length;
+  const quoted = vendors.filter((v) => v.status === "cotando").length;
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-6xl space-y-8">
+        <div className="h-10 w-64 bg-muted animate-pulse rounded" />
+        <div className="grid gap-4 sm:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full" />
+          ))}
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="h-64 w-full rounded-lg" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="mx-auto max-w-6xl">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Erro ao carregar fornecedores</AlertTitle>
+          <AlertDescription>
+            {error instanceof Error
+              ? error.message
+              : "Tente novamente mais tarde."}
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (vendors.length === 0) {
+    return (
+      <div className="mx-auto max-w-6xl text-center py-12">
+        <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
+        <h2 className="mt-4 text-xl font-semibold">
+          Nenhum fornecedor cadastrado
+        </h2>
+        <p className="mt-2 text-muted-foreground">
+          Adicione seus primeiros parceiros do casamento
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -155,7 +120,6 @@ export default function VendorsPage() {
         </p>
       </header>
 
-      {/* Stats */}
       <section
         className="mb-8 grid gap-4 sm:grid-cols-3 animate-fade-up"
         style={{ animationDelay: "0.1s" }}
@@ -179,7 +143,9 @@ export default function VendorsPage() {
             </div>
             <div>
               <p className="text-2xl font-semibold">{negotiating}</p>
-              <p className="text-xs text-muted-foreground">Em Negociação</p>
+              <p className="text-xs text-muted-foreground">
+                Em Cotação/Negociação
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -199,13 +165,13 @@ export default function VendorsPage() {
         </Card>
       </section>
 
-      {/* Vendor Grid */}
       <section
         className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 animate-fade-up"
         style={{ animationDelay: "0.2s" }}
       >
         {vendors.map((vendor) => {
-          const StatusIcon = statusConfig[vendor.status].icon;
+          const status = statusConfig[vendor.status] || statusConfig.cotando;
+          const StatusIcon = status.icon;
 
           return (
             <Card
@@ -216,7 +182,7 @@ export default function VendorsPage() {
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <span
-                      className={`inline-block rounded-full px-2 py-0.5 text-xs ${categoryColors[vendor.category]}`}
+                      className={`inline-block rounded-full px-2 py-0.5 text-xs ${categoryColors[vendor.category as keyof typeof categoryColors] || "bg-gray-100 text-gray-800"}`}
                     >
                       {vendor.category}
                     </span>
@@ -224,49 +190,48 @@ export default function VendorsPage() {
                       {vendor.name}
                     </CardTitle>
                   </div>
-                  <Badge
-                    variant={statusConfig[vendor.status].variant}
-                    className="shrink-0"
-                  >
+                  <Badge variant={status.variant} className="shrink-0">
                     <StatusIcon className="mr-1 h-3 w-3" />
-                    {statusConfig[vendor.status].label}
+                    {status.label}
                   </Badge>
                 </div>
               </CardHeader>
 
               <CardContent className="space-y-3">
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-4 w-4 ${
-                        i < vendor.rating ? "fill-gold text-gold" : "text-muted"
-                      }`}
-                    />
-                  ))}
-                </div>
-
-                <p className="text-sm text-muted-foreground">{vendor.notes}</p>
+                {vendor.notes && (
+                  <p className="text-sm text-muted-foreground line-clamp-2">
+                    {vendor.notes}
+                  </p>
+                )}
 
                 {vendor.price && (
                   <p className="text-lg font-semibold text-primary">
-                    {vendor.price}
+                    R${" "}
+                    {Number(vendor.price).toLocaleString("pt-BR", {
+                      minimumFractionDigits: 2,
+                    })}
                   </p>
                 )}
 
                 <div className="space-y-1 pt-2 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <Store className="h-3 w-3" />
-                    <span>{vendor.contact}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-3 w-3" />
-                    <span>{vendor.phone}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-3 w-3" />
-                    <span className="truncate">{vendor.email}</span>
-                  </div>
+                  {vendor.contactName && (
+                    <div className="flex items-center gap-2">
+                      <Store className="h-3 w-3" />
+                      <span>{vendor.contactName}</span>
+                    </div>
+                  )}
+                  {vendor.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="h-3 w-3" />
+                      <span>{vendor.phone}</span>
+                    </div>
+                  )}
+                  {vendor.email && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-3 w-3" />
+                      <span className="truncate">{vendor.email}</span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -276,4 +241,3 @@ export default function VendorsPage() {
     </div>
   );
 }
-

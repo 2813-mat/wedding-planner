@@ -2,23 +2,26 @@ import api from "./api";
 
 export interface Vendor {
   id: number;
+  weddingId: string;
   name: string;
   category: string;
-  email: string;
+  contactName: string;
   phone: string;
-  service: string;
-  budget: number;
-  status: "ativo" | "inativo";
+  email: string;
+  price: number;
+  status: "cotando" | "contratado" | "pago" | "cancelado";
+  notes: string;
 }
 
 export interface CreateVendorDTO {
   name: string;
   category: string;
+  contactName: string;
   email: string;
   phone: string;
-  service: string;
-  budget: number;
-  status?: "ativo" | "inativo";
+  status: "cotando" | "contratado" | "pago" | "cancelado";
+  notes: string;
+  price: number;
 }
 
 export const vendorService = {
