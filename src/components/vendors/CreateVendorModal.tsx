@@ -31,10 +31,16 @@ import { useCreateVendor } from "../../hooks/useVendors";
 import { toast } from "../ui/use-toast";
 import type { CreateVendorDTO } from "../../services/vendorService";
 import { useState } from "react";
+import {
+  VENDOR_CATEGORIES,
+  type VendorCategory,
+} from "../../constants/vendorCategories";
 
 const createVendorSchema = z.object({
   name: z.string().min(1, "Nome do fornecedor é obrigatório"),
-  category: z.string().min(1, "Categoria é obrigatória"),
+  category: z.enum(VENDOR_CATEGORIES, {
+    errorMap: () => ({ message: "Categoria inválida" }),
+  }),
   contactName: z.string().min(1, "Nome do contato é obrigatório"),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   phone: z.string().optional().or(z.literal("")),
@@ -50,7 +56,7 @@ type CreateVendorFormValues = z.infer<typeof createVendorSchema>;
 
 const defaultValues: CreateVendorFormValues = {
   name: "",
-  category: "",
+  category: "outros",
   contactName: "",
   email: "",
   phone: "",
@@ -135,9 +141,23 @@ export function CreateVendorModal() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Categoria *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: buffet, fotografia..." {...field} />
-                  </FormControl>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a categoria" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {VENDOR_CATEGORIES.map((cat) => (
+                        <SelectItem key={cat} value={cat}>
+                          {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

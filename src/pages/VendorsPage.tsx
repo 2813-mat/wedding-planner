@@ -20,6 +20,7 @@ import { useVendors } from "../hooks/useVendors";
 import { VendorStatusFilter } from "../components/vendors/VendorStatusFilter";
 import { CreateVendorModal } from "../components/vendors/CreateVendorModal";
 import { useState } from "react";
+import type { VendorCategory } from "../constants/vendorCategories";
 
 const statusConfig = {
   cotando: {
@@ -48,7 +49,7 @@ const statusConfig = {
   },
 } as const;
 
-const categoryColors = {
+const categoryColors: Record<VendorCategory, string> = {
   buffet: "bg-blue-100 text-blue-800",
   cerimonia: "bg-purple-100 text-purple-800",
   decoracao: "bg-pink-100 text-pink-800",
@@ -204,9 +205,8 @@ export default function VendorsPage() {
                   <div>
                     <span
                       className={`inline-block rounded-full px-2 py-0.5 text-xs ${
-                        categoryColors[
-                          vendor.category as keyof typeof categoryColors
-                        ] || "bg-gray-100 text-gray-800"
+                        categoryColors[vendor.category as VendorCategory] ||
+                        "bg-gray-100 text-gray-800"
                       }`}
                     >
                       {vendor.category}
