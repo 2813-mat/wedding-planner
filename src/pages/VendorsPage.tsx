@@ -115,20 +115,6 @@ export default function VendorsPage() {
     );
   }
 
-  if (vendors.length === 0) {
-    return (
-      <div className="mx-auto max-w-6xl text-center py-12">
-        <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
-        <h2 className="mt-4 text-xl font-semibold">
-          Nenhum fornecedor cadastrado
-        </h2>
-        <p className="mt-2 text-muted-foreground">
-          Adicione seus primeiros parceiros do casamento
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="mx-auto max-w-6xl">
       <header className="mb-8 space-y-4">

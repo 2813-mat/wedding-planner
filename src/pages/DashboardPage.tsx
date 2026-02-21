@@ -121,7 +121,7 @@ export default function DashboardPage() {
             <CardContent>
               {nextTasks.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Sem tarefas (checklist não conectado)
+                  Sem tarefas criadas
                 </p>
               ) : (
                 <ul className="space-y-3">

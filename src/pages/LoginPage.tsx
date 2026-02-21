@@ -33,14 +33,7 @@ export default function LoginPage() {
               ? tokenResponse
               : tokenResponse.access_token;
 
-          console.log("🔑 Token obtido do Auth0:", {
-            tokenLength: token?.length,
-            tokenPreview: token ? `${token.substring(0, 20)}...` : "N/A",
-          });
-
           setAccessToken(token);
-
-          console.log("📤 Enviando requisição para /auth/sync-user...");
 
           try {
             const response = await api.post("/auth/sync-user");
