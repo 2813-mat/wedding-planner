@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Link } from "react-router-dom";
-
-const WEDDING_DATE = new Date("2025-10-18T16:00:00");
+import { useWedding } from "../hooks/useWedding";
 
 interface TimeLeft {
   days: number;
@@ -13,8 +12,8 @@ interface TimeLeft {
   seconds: number;
 }
 
-function calculateTimeLeft(): TimeLeft {
-  const difference = WEDDING_DATE.getTime() - new Date().getTime();
+function calculateTimeLeft(weddingDate: Date): TimeLeft {
+  const difference = weddingDate.getTime() - new Date().getTime();
 
   if (difference <= 0) {
     return { days: 0, hours: 0, minutes: 0, seconds: 0 };
@@ -29,15 +28,28 @@ function calculateTimeLeft(): TimeLeft {
 }
 
 export default function HomePage() {
-  const [timeLeft, setTimeLeft] = useState<TimeLeft>(calculateTimeLeft());
+  const { data: weddings = [] } = useWedding();
+  const wedding = weddings[0];
+
+  const weddingDate = wedding?.weddingDate
+    ? new Date(wedding.weddingDate)
+    : null;
+
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>(() =>
+    weddingDate ? calculateTimeLeft(weddingDate) : { days: 0, hours: 0, minutes: 0, seconds: 0 },
+  );
 
   useEffect(() => {
+    if (!weddingDate) return;
+
+    setTimeLeft(calculateTimeLeft(weddingDate));
+
     const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft());
+      setTimeLeft(calculateTimeLeft(weddingDate));
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [wedding?.weddingDate]);
 
   const quickLinks = [
     {
@@ -71,7 +83,9 @@ export default function HomePage() {
         </div>
 
         <h1 className="mb-2 font-display text-5xl font-semibold tracking-tight md:text-6xl lg:text-7xl">
-          Thais & Mateus
+          {wedding?.coupleName1 && wedding?.coupleName2
+            ? `${wedding.coupleName1} & ${wedding.coupleName2}`
+            : wedding?.title ?? "Nosso Casamento"}
         </h1>
 
         <p className="mb-8 text-lg text-muted-foreground">Vamos nos casar!</p>
@@ -80,15 +94,30 @@ export default function HomePage() {
         <div className="mb-8 flex flex-wrap items-center justify-center gap-6 text-muted-foreground">
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
-            <span>09 de Setembro de 2028</span>
+            <span>
+              {weddingDate
+                ? weddingDate.toLocaleDateString("pt-BR", {
+                    day: "2-digit",
+                    month: "long",
+                    year: "numeric",
+                  })
+                : "A definir"}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
-            <span>A definir</span>
+            <span>
+              {weddingDate
+                ? weddingDate.toLocaleTimeString("pt-BR", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "A definir"}
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <MapPin className="h-4 w-4" />
-            <span>A definir</span>
+            <span>{wedding?.location ?? "A definir"}</span>
           </div>
         </div>
       </section>
