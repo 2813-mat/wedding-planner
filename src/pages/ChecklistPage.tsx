@@ -13,251 +13,20 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "../components/ui/collapsible";
-
-interface Task {
-  id: number;
-  title: string;
-  completed: boolean;
-  category: string;
-}
-
-interface TaskGroup {
-  period: string;
-  description: string;
-  tasks: Task[];
-}
-
-const initialTaskGroups: TaskGroup[] = [
-  {
-    period: "12+ meses antes",
-    description: "Planejamento inicial",
-    tasks: [
-      {
-        id: 1,
-        title: "Definir data do casamento",
-        completed: true,
-        category: "Planejamento",
-      },
-      {
-        id: 2,
-        title: "Definir orçamento total",
-        completed: true,
-        category: "Financeiro",
-      },
-      {
-        id: 3,
-        title: "Escolher local da cerimônia",
-        completed: true,
-        category: "Cerimônia",
-      },
-      {
-        id: 4,
-        title: "Escolher local da festa",
-        completed: true,
-        category: "Recepção",
-      },
-      {
-        id: 5,
-        title: "Fazer lista preliminar de convidados",
-        completed: true,
-        category: "Convidados",
-      },
-    ],
-  },
-  {
-    period: "9-12 meses antes",
-    description: "Contratação de fornecedores principais",
-    tasks: [
-      {
-        id: 6,
-        title: "Contratar buffet",
-        completed: true,
-        category: "Recepção",
-      },
-      {
-        id: 7,
-        title: "Contratar fotógrafo e videomaker",
-        completed: true,
-        category: "Fornecedores",
-      },
-      {
-        id: 8,
-        title: "Contratar banda/DJ",
-        completed: true,
-        category: "Fornecedores",
-      },
-      {
-        id: 9,
-        title: "Contratar decorador",
-        completed: true,
-        category: "Decoração",
-      },
-      {
-        id: 10,
-        title: "Reservar hotel para lua de mel",
-        completed: false,
-        category: "Lua de Mel",
-      },
-    ],
-  },
-  {
-    period: "6-9 meses antes",
-    description: "Detalhes da cerimônia",
-    tasks: [
-      {
-        id: 11,
-        title: "Escolher vestido da noiva",
-        completed: true,
-        category: "Vestuário",
-      },
-      {
-        id: 12,
-        title: "Escolher traje do noivo",
-        completed: true,
-        category: "Vestuário",
-      },
-      {
-        id: 13,
-        title: "Definir madrinhas e padrinhos",
-        completed: true,
-        category: "Cerimônia",
-      },
-      {
-        id: 14,
-        title: "Contratar cerimonialista",
-        completed: false,
-        category: "Cerimônia",
-      },
-      {
-        id: 15,
-        title: "Encomendar convites",
-        completed: false,
-        category: "Papelaria",
-      },
-    ],
-  },
-  {
-    period: "3-6 meses antes",
-    description: "Finalização de detalhes",
-    tasks: [
-      {
-        id: 16,
-        title: "Prova do vestido",
-        completed: false,
-        category: "Vestuário",
-      },
-      {
-        id: 17,
-        title: "Enviar convites",
-        completed: false,
-        category: "Convidados",
-      },
-      {
-        id: 18,
-        title: "Definir cardápio",
-        completed: false,
-        category: "Recepção",
-      },
-      {
-        id: 19,
-        title: "Escolher bolo",
-        completed: false,
-        category: "Recepção",
-      },
-      {
-        id: 20,
-        title: "Definir playlist",
-        completed: false,
-        category: "Entretenimento",
-      },
-    ],
-  },
-  {
-    period: "1-3 meses antes",
-    description: "Últimos preparativos",
-    tasks: [
-      {
-        id: 21,
-        title: "Confirmar presença dos convidados",
-        completed: false,
-        category: "Convidados",
-      },
-      {
-        id: 22,
-        title: "Ensaio fotográfico pré-wedding",
-        completed: false,
-        category: "Fotografia",
-      },
-      {
-        id: 23,
-        title: "Última prova do vestido",
-        completed: false,
-        category: "Vestuário",
-      },
-      {
-        id: 24,
-        title: "Confirmar todos os fornecedores",
-        completed: false,
-        category: "Fornecedores",
-      },
-      {
-        id: 25,
-        title: "Preparar votos",
-        completed: false,
-        category: "Cerimônia",
-      },
-    ],
-  },
-  {
-    period: "Última semana",
-    description: "Preparação final",
-    tasks: [
-      {
-        id: 26,
-        title: "Ensaio da cerimônia",
-        completed: false,
-        category: "Cerimônia",
-      },
-      {
-        id: 27,
-        title: "Confirmar horários com fornecedores",
-        completed: false,
-        category: "Fornecedores",
-      },
-      {
-        id: 28,
-        title: "Preparar malas para lua de mel",
-        completed: false,
-        category: "Lua de Mel",
-      },
-      { id: 29, title: "Spa day", completed: false, category: "Pessoal" },
-      { id: 30, title: "Descansar!", completed: false, category: "Pessoal" },
-    ],
-  },
-];
+import { useChecklist, useUpdateTask } from "../hooks/useChecklist";
+import { CreateTaskModal } from "../components/checklist/CreateTaskModal";
 
 export default function ChecklistPage() {
-  const [taskGroups, setTaskGroups] = useState(initialTaskGroups);
+  const { data: taskGroups = [], isLoading } = useChecklist();
+  const updateTask = useUpdateTask();
+
   const [openGroups, setOpenGroups] = useState<string[]>([
     "12+ meses antes",
     "9-12 meses antes",
   ]);
 
-  const toggleTask = (groupPeriod: string, taskId: number) => {
-    setTaskGroups((prev) =>
-      prev.map((group) =>
-        group.period === groupPeriod
-          ? {
-              ...group,
-              tasks: group.tasks.map((task) =>
-                task.id === taskId
-                  ? { ...task, completed: !task.completed }
-                  : task,
-              ),
-            }
-          : group,
-      ),
-    );
+  const toggleTask = (taskId: string, currentCompleted: boolean) => {
+    updateTask.mutate({ id: taskId, data: { completed: !currentCompleted } });
   };
 
   const toggleGroup = (period: string) => {
@@ -273,15 +42,40 @@ export default function ChecklistPage() {
     (sum, g) => sum + g.tasks.filter((t) => t.completed).length,
     0,
   );
-  const progress = Math.round((completedTasks / totalTasks) * 100);
+  const progress =
+    totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+  if (isLoading) {
+    return (
+      <div className="mx-auto max-w-4xl">
+        <header className="mb-8 animate-fade-up">
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="font-display text-4xl font-semibold">Checklist</h1>
+              <p className="mt-1 text-muted-foreground">
+                Acompanhe todas as tarefas do planejamento
+              </p>
+            </div>
+            <CreateTaskModal />
+          </div>
+        </header>
+        <p className="text-sm text-muted-foreground">Carregando...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-4xl">
       <header className="mb-8 animate-fade-up">
-        <h1 className="font-display text-4xl font-semibold">Checklist</h1>
-        <p className="mt-1 text-muted-foreground">
-          Acompanhe todas as tarefas do planejamento
-        </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="font-display text-4xl font-semibold">Checklist</h1>
+            <p className="mt-1 text-muted-foreground">
+              Acompanhe todas as tarefas do planejamento
+            </p>
+          </div>
+          <CreateTaskModal />
+        </div>
       </header>
 
       {/* Progress Overview */}
@@ -320,7 +114,10 @@ export default function ChecklistPage() {
         {taskGroups.map((group) => {
           const groupCompleted = group.tasks.filter((t) => t.completed).length;
           const groupTotal = group.tasks.length;
-          const groupProgress = Math.round((groupCompleted / groupTotal) * 100);
+          const groupProgress =
+            groupTotal > 0
+              ? Math.round((groupCompleted / groupTotal) * 100)
+              : 0;
           const isOpen = openGroups.includes(group.period);
 
           return (
@@ -375,7 +172,7 @@ export default function ChecklistPage() {
                             id={`task-${task.id}`}
                             checked={task.completed}
                             onCheckedChange={() =>
-                              toggleTask(group.period, task.id)
+                              toggleTask(task.id, task.completed)
                             }
                           />
                           <label
@@ -404,4 +201,3 @@ export default function ChecklistPage() {
     </div>
   );
 }
-

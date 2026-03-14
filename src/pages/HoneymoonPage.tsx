@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { Plus } from "lucide-react";
 import { useCreateHoneymoon, useHoneymoon } from "../hooks/useHoneymoon";
 import { HoneymoonCard } from "../components/honeymoon/HoneymoonCard";
 import { HoneymoonForm } from "../components/honeymoon/HoneymoonForm";
 import { HoneymoonFilters } from "../components/honeymoon/HoneymoonFilters";
+import { Button } from "../components/ui/button";
 
 export default function HoneymoonPage() {
   const { data: honeymoons = [], isLoading } = useHoneymoon();
@@ -29,12 +31,10 @@ export default function HoneymoonPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-4xl font-semibold">Lua de Mel</h1>
 
-        <button
-          onClick={() => setIsCreating(true)}
-          className="px-4 py-2 rounded bg-primary text-white"
-        >
-          Criar lua de mel
-        </button>
+        <Button size="sm" className="gap-2" onClick={() => setIsCreating(true)}>
+          <Plus className="h-4 w-4" />
+          Nova viagem
+        </Button>
       </div>
 
       <HoneymoonFilters value={statusFilter} onChange={setStatusFilter} />

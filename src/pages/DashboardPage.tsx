@@ -15,10 +15,15 @@ import {
 import { Progress } from "../components/ui/progress";
 import { useGuests } from "../hooks/useGuests";
 import { useVendors } from "../hooks/useVendors";
+import { useChecklist } from "../hooks/useChecklist";
+import { useBudgetCategories } from "../hooks/useBudget";
 
 export default function DashboardPage() {
   const { data: guests = [], isLoading: guestsLoading } = useGuests();
   const { data: vendors = [], isLoading: vendorsLoading } = useVendors();
+  const { data: taskGroups = [], isLoading: checklistLoading } = useChecklist();
+  const { data: budgetCategories = [], isLoading: budgetLoading } =
+    useBudgetCategories();
 
   const guestsTotal = guests.length;
   const guestsConfirmed = guests.filter((g: any) => g.confirmed === 1).length;
@@ -28,9 +33,22 @@ export default function DashboardPage() {
     (v: any) => v.status === "contratado",
   ).length;
 
-  const hasBudget = false;
-  const nextTasks: Array<any> = [];
-  const recentActivity: Array<any> = [];
+  const allTasks = taskGroups.flatMap((g) => g.tasks);
+  const totalTasks = allTasks.length;
+  const completedTasks = allTasks.filter((t) => t.completed).length;
+  const checklistProgress =
+    totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+  const totalPlanned = budgetCategories.reduce(
+    (sum, cat) => sum + cat.planned,
+    0,
+  );
+  const totalSpent = budgetCategories.reduce((sum, cat) => sum + cat.spent, 0);
+  const budgetPercent =
+    totalPlanned > 0 ? Math.round((totalSpent / totalPlanned) * 100) : 0;
+  const hasBudget = budgetCategories.length > 0;
+
+  const nextTasks = allTasks.filter((t) => !t.completed).slice(0, 5);
 
   const stats = [
     {
@@ -47,19 +65,23 @@ export default function DashboardPage() {
     },
     {
       title: "Tarefas",
-      value: "-",
-      subtitle: "",
+      value: checklistLoading ? "..." : `${completedTasks}/${totalTasks}`,
+      subtitle: checklistLoading ? "Carregando..." : `${checklistProgress}% concluído`,
       icon: CheckSquare,
-      progress: 0,
-      color: "text-muted-foreground",
+      progress: checklistProgress,
+      color: "text-primary",
     },
     {
       title: "Orçamento",
-      value: "-",
-      subtitle: "",
+      value: budgetLoading ? "..." : hasBudget ? `${budgetPercent}%` : "-",
+      subtitle: budgetLoading
+        ? "Carregando..."
+        : hasBudget
+          ? "do total utilizado"
+          : "Sem categorias",
       icon: DollarSign,
-      progress: 0,
-      color: "text-muted-foreground",
+      progress: budgetPercent,
+      color: hasBudget ? "text-primary" : "text-muted-foreground",
     },
     {
       title: "Fornecedores",
@@ -119,31 +141,22 @@ export default function DashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {nextTasks.length === 0 ? (
+              {checklistLoading ? (
+                <p className="text-sm text-muted-foreground">Carregando...</p>
+              ) : nextTasks.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  Sem tarefas criadas
+                  Todas as tarefas concluídas
                 </p>
               ) : (
                 <ul className="space-y-3">
-                  {nextTasks.map((task, index) => (
+                  {nextTasks.map((task) => (
                     <li
-                      key={index}
+                      key={task.id}
                       className="flex items-center justify-between rounded-lg bg-muted/50 p-3"
                     >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`h-2 w-2 rounded-full ${
-                            task.priority === "alta"
-                              ? "bg-destructive"
-                              : task.priority === "média"
-                                ? "bg-warning"
-                                : "bg-success"
-                          }`}
-                        />
-                        <span className="text-sm">{task.task}</span>
-                      </div>
+                      <span className="text-sm">{task.title}</span>
                       <span className="text-xs text-muted-foreground">
-                        {task.date}
+                        {task.period}
                       </span>
                     </li>
                   ))}
@@ -163,25 +176,9 @@ export default function DashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {recentActivity.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Sem atividade recente
-                </p>
-              ) : (
-                <ul className="space-y-4">
-                  {recentActivity.map((activity, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <div className="mt-1.5 h-2 w-2 rounded-full bg-primary" />
-                      <div className="flex-1">
-                        <p className="text-sm">{activity.action}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {activity.time}
-                        </p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <p className="text-sm text-muted-foreground">
+                Sem atividade recente
+              </p>
             </CardContent>
           </Card>
         </section>
@@ -209,16 +206,16 @@ export default function DashboardPage() {
                 {hasBudget ? (
                   <>
                     <span className="text-3xl font-semibold text-primary">
-                      65%
+                      {budgetPercent}%
                     </span>
-                    <p className="text-xs text-muted-foreground">completo</p>
+                    <p className="text-xs text-muted-foreground">utilizado</p>
                   </>
                 ) : (
                   <span className="text-sm text-muted-foreground">—</span>
                 )}
               </div>
             </div>
-            {hasBudget && <Progress value={65} className="h-3" />}
+            {hasBudget && <Progress value={budgetPercent} className="h-3" />}
           </CardContent>
         </Card>
       </section>

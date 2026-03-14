@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { Input } from "../components/ui/input";
-import { Badge } from "../components/ui/badge";
 import {
   Table,
   TableBody,
@@ -26,12 +25,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-import { useGuests } from "../hooks/useGuests";
-import { CreateGiftModal } from "../components/gifts/CreateGiftModal";
+import { useGuests, useUpdateGuest } from "../hooks/useGuests";
 import { CreateGuestModal } from "../components/guests/CreateGuestModal";
 
 export default function GuestsPage() {
   const { data: guests = [], isLoading, error } = useGuests();
+  const updateGuest = useUpdateGuest();
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -228,21 +227,24 @@ export default function GuestsPage() {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={
-                        guest.confirmed === 1
-                          ? "default"
-                          : guest.confirmed === 0
-                            ? "secondary"
-                            : "destructive"
+                    <Select
+                      value={String(guest.confirmed)}
+                      onValueChange={(val) =>
+                        updateGuest.mutate({
+                          id: Number(guest.id),
+                          data: { confirmed: Number(val) },
+                        })
                       }
                     >
-                      {guest.confirmed === 1
-                        ? "Confirmado"
-                        : guest.confirmed === 0
-                          ? "Pendente"
-                          : "Não vai"}
-                    </Badge>
+                      <SelectTrigger className="h-7 w-32 text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1">Confirmado</SelectItem>
+                        <SelectItem value="0">Pendente</SelectItem>
+                        <SelectItem value="-1">Não vai</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </TableCell>
                   <TableCell className="text-right">
                     {guest.adults + guest.children}

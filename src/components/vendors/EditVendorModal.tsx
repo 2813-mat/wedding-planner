@@ -1,7 +1,8 @@
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Loader } from "lucide-react";
+import { Pencil, Loader } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -27,80 +28,90 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Textarea } from "../ui/textarea";
-import { useCreateVendor } from "../../hooks/useVendors";
+import { useUpdateVendor } from "../../hooks/useVendors";
 import { toast } from "../ui/use-toast";
-import type { CreateVendorDTO } from "../../services/vendorService";
-import { useState } from "react";
+import type { Vendor } from "../../services/vendorService";
 import {
   VENDOR_CATEGORIES,
   type VendorCategory,
 } from "../../constants/vendorCategories";
 
-const createVendorSchema = z.object({
-  name: z.string().min(1, "Nome do fornecedor é obrigatório"),
-  category: z.enum(VENDOR_CATEGORIES, {
-    errorMap: () => ({ message: "Categoria inválida" }),
-  }),
-  contactName: z.string().min(1, "Nome do contato é obrigatório"),
-  email: z.string().email("Email inválido").optional().or(z.literal("")),
-  phone: z.string().optional().or(z.literal("")),
+const schema = z.object({
+  name: z.string().optional(),
+  category: z.enum(VENDOR_CATEGORIES).optional(),
+  contactName: z.string().optional(),
+  email: z.string().optional(),
+  phone: z.string().optional(),
   status: z.enum(["cotando", "contratado", "pago", "cancelado"]),
-  notes: z.string().optional().or(z.literal("")),
-  price: z
-    .union([z.number(), z.nan()])
-    .optional()
-    .transform((val) => (isNaN(val as number) ? undefined : val)),
+  notes: z.string().optional(),
+  price: z.string().optional(),
 });
 
-type CreateVendorFormValues = z.infer<typeof createVendorSchema>;
+type FormValues = z.infer<typeof schema>;
 
-const defaultValues: CreateVendorFormValues = {
-  name: "",
-  category: "outros",
-  contactName: "",
-  email: "",
-  phone: "",
-  status: "cotando",
-  notes: "",
-  price: undefined,
-};
+interface EditVendorModalProps {
+  vendor: Vendor;
+}
 
-export function CreateVendorModal() {
+export function EditVendorModal({ vendor }: EditVendorModalProps) {
   const [open, setOpen] = useState(false);
-  const createVendor = useCreateVendor();
+  const updateVendor = useUpdateVendor();
 
-  const form = useForm<CreateVendorFormValues>({
-    resolver: zodResolver(createVendorSchema),
-    defaultValues,
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      name: vendor.name,
+      category: vendor.category as VendorCategory,
+      contactName: vendor.contactName,
+      email: vendor.email ?? "",
+      phone: vendor.phone ?? "",
+      status: vendor.status,
+      notes: vendor.notes ?? "",
+      price: vendor.price != null ? String(vendor.price) : "",
+    },
   });
 
-  const onSubmit = async (values: CreateVendorFormValues) => {
-    const payload: CreateVendorDTO = {
-      name: values.name.trim(),
-      category: values.category,
-      contactName: values.contactName.trim(),
-      email: values.email || "",
-      phone: values.phone || "",
-      status: values.status,
-      notes: values.notes || "",
-      price: values.price ?? 0,
-    };
-
-    try {
-      await createVendor.mutateAsync(payload);
-
-      toast({
-        title: "Fornecedor criado",
-        description: `${values.name} foi adicionado com sucesso.`,
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        name: vendor.name,
+        category: vendor.category as VendorCategory,
+        contactName: vendor.contactName,
+        email: vendor.email ?? "",
+        phone: vendor.phone ?? "",
+        status: vendor.status,
+        notes: vendor.notes ?? "",
+        price: vendor.price != null ? String(vendor.price) : "",
       });
+    }
+  }, [open, vendor, form]);
 
-      form.reset(defaultValues);
+  const onSubmit = async (values: FormValues) => {
+    const parsedPrice = values.price ? parseFloat(values.price) : undefined;
+    try {
+      await updateVendor.mutateAsync({
+        id: vendor.id,
+        data: {
+          name: values.name?.trim() || vendor.name,
+          category: values.category || vendor.category,
+          contactName: values.contactName?.trim() || vendor.contactName,
+          email: values.email ?? vendor.email,
+          phone: values.phone ?? vendor.phone,
+          status: values.status,
+          notes: values.notes ?? vendor.notes,
+          price: !isNaN(parsedPrice as number) ? parsedPrice : vendor.price,
+        },
+      });
+      toast({
+        title: "Fornecedor atualizado",
+        description: `${values.name} foi atualizado com sucesso.`,
+      });
       setOpen(false);
     } catch {
       toast({
         variant: "destructive",
-        title: "Erro ao criar fornecedor",
-        description: "Não foi possível adicionar o fornecedor.",
+        title: "Erro ao atualizar",
+        description: "Não foi possível atualizar o fornecedor.",
       });
     }
   };
@@ -108,15 +119,14 @@ export function CreateVendorModal() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm" className="gap-2">
-          <Plus className="h-4 w-4" />
-          Novo fornecedor
+        <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0">
+          <Pencil className="h-3.5 w-3.5" />
         </Button>
       </DialogTrigger>
 
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Adicionar fornecedor</DialogTitle>
+          <DialogTitle>Editar fornecedor</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -128,7 +138,7 @@ export function CreateVendorModal() {
                 <FormItem>
                   <FormLabel>Nome do fornecedor *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex: Buffet Gourmet" {...field} />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -141,10 +151,7 @@ export function CreateVendorModal() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Categoria *</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione a categoria" />
@@ -170,7 +177,7 @@ export function CreateVendorModal() {
                 <FormItem>
                   <FormLabel>Nome do contato *</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex: Marcela Santos" {...field} />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -211,10 +218,7 @@ export function CreateVendorModal() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Status *</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o status" />
@@ -242,11 +246,6 @@ export function CreateVendorModal() {
                       type="number"
                       step="0.01"
                       {...field}
-                      onChange={(e) =>
-                        field.onChange(
-                          e.target.value ? Number(e.target.value) : undefined,
-                        )
-                      }
                     />
                   </FormControl>
                 </FormItem>
@@ -274,12 +273,11 @@ export function CreateVendorModal() {
               >
                 Cancelar
               </Button>
-
-              <Button type="submit" disabled={createVendor.isPending}>
-                {createVendor.isPending && (
-                  <Loader className="h-4 w-4 animate-spin mr-2" />
+              <Button type="submit" disabled={updateVendor.isPending}>
+                {updateVendor.isPending && (
+                  <Loader className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Adicionar
+                Salvar
               </Button>
             </div>
           </form>

@@ -19,6 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { useVendors } from "../hooks/useVendors";
 import { VendorStatusFilter } from "../components/vendors/VendorStatusFilter";
 import { CreateVendorModal } from "../components/vendors/CreateVendorModal";
+import { EditVendorModal } from "../components/vendors/EditVendorModal";
 import { useState } from "react";
 import type { VendorCategory } from "../constants/vendorCategories";
 
@@ -201,10 +202,13 @@ export default function VendorsPage() {
                       {vendor.name}
                     </CardTitle>
                   </div>
-                  <Badge variant={status.variant} className="shrink-0">
-                    <StatusIcon className="mr-1 h-3 w-3" />
-                    {status.label}
-                  </Badge>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <Badge variant={status.variant}>
+                      <StatusIcon className="mr-1 h-3 w-3" />
+                      {status.label}
+                    </Badge>
+                    <EditVendorModal vendor={vendor} />
+                  </div>
                 </div>
               </CardHeader>
 
