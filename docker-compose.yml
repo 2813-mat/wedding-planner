@@ -9,3 +9,9 @@ services:
     ports:
       - "80:80"
     restart: unless-stopped
+    networks:
+      - infra
+
+networks:
+  infra:
+    external: true
