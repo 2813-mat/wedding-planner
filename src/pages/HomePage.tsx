@@ -32,7 +32,15 @@ export default function HomePage() {
   const wedding = weddings[0];
 
   const weddingDate = wedding?.weddingDate
-    ? new Date(wedding.weddingDate)
+    ? (() => {
+        // A API retorna "2028-09-09T00:00:00.000Z" (UTC).
+        // Usar new Date() diretamente converte para horário local e antecipa o dia.
+        // Extraímos só "YYYY-MM-DD" e construímos um Date local para evitar o offset.
+        const [year, month, day] = wedding.weddingDate.split("T")[0]
+          .split("-")
+          .map(Number);
+        return new Date(year, month - 1, day);
+      })()
     : null;
 
   const [timeLeft, setTimeLeft] = useState<TimeLeft>(() =>

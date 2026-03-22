@@ -12,9 +12,32 @@ export interface Wedding {
   updatedAt: string;
 }
 
+export interface CreateWeddingDTO {
+  title: string;
+  weddingDate: string;
+  location?: string;
+  budgetTotal?: number;
+  coupleName1?: string;
+  coupleName2?: string;
+}
+
 export const weddingService = {
   async getMy(): Promise<Wedding[]> {
     const response = await api.get("/weddings/my");
     return response.data;
+  },
+
+  async getAll(): Promise<Wedding[]> {
+    const response = await api.get("/weddings");
+    return response.data;
+  },
+
+  async create(data: CreateWeddingDTO): Promise<Wedding> {
+    const response = await api.post<Wedding>("/weddings", data);
+    return response.data;
+  },
+
+  async join(id: string): Promise<void> {
+    await api.post(`/weddings/${id}/join`);
   },
 };
