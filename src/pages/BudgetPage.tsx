@@ -77,7 +77,7 @@ export default function BudgetPage() {
               <DollarSign className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Orçamento Total</p>
+              <p className="text-xs text-muted-foreground">Gasto Total</p>
               <p className="text-xl font-semibold">
                 {formatCurrency(totalPlanned)}
               </p>
@@ -91,7 +91,7 @@ export default function BudgetPage() {
               <TrendingUp className="h-5 w-5 text-warning" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Gasto</p>
+              <p className="text-xs text-muted-foreground">Pago</p>
               <p className="text-xl font-semibold">
                 {formatCurrency(totalSpent)}
               </p>
@@ -105,7 +105,7 @@ export default function BudgetPage() {
               <PiggyBank className="h-5 w-5 text-success" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Disponível</p>
+              <p className="text-xs text-muted-foreground">A Pagar</p>
               <p className="text-xl font-semibold">
                 {formatCurrency(remaining)}
               </p>
@@ -119,7 +119,7 @@ export default function BudgetPage() {
               <TrendingDown className="h-5 w-5 text-accent-foreground" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Utilizado</p>
+              <p className="text-xs text-muted-foreground">Percentual pago</p>
               <p className="text-xl font-semibold">{percentUsed}%</p>
             </div>
           </CardContent>
@@ -237,8 +237,7 @@ export default function BudgetPage() {
                         />
                         {isOverBudget && (
                           <div className="absolute right-0 -top-1 text-xs text-destructive">
-                            +
-                            {formatCurrency(category.spent - category.planned)}
+                            +{formatCurrency(category.spent - category.planned)}
                           </div>
                         )}
                       </div>
