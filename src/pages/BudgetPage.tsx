@@ -1,4 +1,5 @@
-import { DollarSign, TrendingUp, TrendingDown, PiggyBank } from "lucide-react";
+import { useState } from "react";
+import { DollarSign, TrendingUp, TrendingDown, PiggyBank, Trash2 } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -7,9 +8,20 @@ import {
 } from "../components/ui/card";
 import { Progress } from "../components/ui/progress";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import { useBudgetCategories } from "../hooks/useBudget";
+import { useBudgetCategories, usePayments, useDeletePayment } from "../hooks/useBudget";
 import { CreateBudgetCategoryModal } from "../components/budget/CreateBudgetCategoryModal";
-import { EditBudgetSpentModal } from "../components/budget/EditBudgetSpentModal";
+import { EditBudgetPlannedModal } from "../components/budget/EditBudgetPlannedModal";
+import { EditBudgetCategoryModal } from "../components/budget/EditBudgetCategoryModal";
+import { CreatePaymentModal } from "../components/budget/CreatePaymentModal";
+import { Button } from "../components/ui/button";
+import { toast } from "../components/ui/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("pt-BR", {
@@ -18,8 +30,37 @@ function formatCurrency(value: number) {
   }).format(value);
 }
 
+function formatDate(dateString: string) {
+  return new Date(dateString).toLocaleDateString("pt-BR");
+}
+
+const PERIOD_OPTIONS = [
+  { label: "Todos", value: "all" },
+  { label: "7 dias", value: "7" },
+  { label: "15 dias", value: "15" },
+  { label: "30 dias", value: "30" },
+];
+
 export default function BudgetPage() {
   const { data: categories = [], isLoading } = useBudgetCategories();
+  const { data: payments = [], isLoading: paymentsLoading } = usePayments();
+  const deletePayment = useDeletePayment();
+
+  const [periodFilter, setPeriodFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+
+  const filteredPayments = payments.filter((payment) => {
+    if (periodFilter !== "all") {
+      const days = parseInt(periodFilter);
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - days);
+      if (new Date(payment.date) < cutoff) return false;
+    }
+    if (categoryFilter !== "all" && payment.categoryId !== categoryFilter) {
+      return false;
+    }
+    return true;
+  });
 
   const totalPlanned = categories.reduce((sum, cat) => sum + cat.planned, 0);
   const totalSpent = categories.reduce((sum, cat) => sum + cat.spent, 0);
@@ -33,6 +74,19 @@ export default function BudgetPage() {
     color: cat.color,
   }));
 
+  const handleDeletePayment = async (id: string) => {
+    try {
+      await deletePayment.mutateAsync(id);
+      toast({ title: "Pagamento removido" });
+    } catch {
+      toast({
+        variant: "destructive",
+        title: "Erro ao remover",
+        description: "Não foi possível remover o pagamento. Tente novamente.",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="mx-auto max-w-6xl">
@@ -44,7 +98,10 @@ export default function BudgetPage() {
                 Controle financeiro do casamento
               </p>
             </div>
-            <CreateBudgetCategoryModal />
+            <div className="flex gap-2">
+              <CreatePaymentModal categories={categories} />
+              <CreateBudgetCategoryModal />
+            </div>
           </div>
         </header>
         <p className="text-sm text-muted-foreground">Carregando...</p>
@@ -62,7 +119,10 @@ export default function BudgetPage() {
               Controle financeiro do casamento
             </p>
           </div>
-          <CreateBudgetCategoryModal />
+          <div className="flex gap-2">
+            <CreatePaymentModal categories={categories} />
+            <CreateBudgetCategoryModal />
+          </div>
         </div>
       </header>
 
@@ -77,7 +137,7 @@ export default function BudgetPage() {
               <DollarSign className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Gasto Total</p>
+              <p className="text-xs text-muted-foreground">Orçado Total</p>
               <p className="text-xl font-semibold">
                 {formatCurrency(totalPlanned)}
               </p>
@@ -215,7 +275,14 @@ export default function BudgetPage() {
                   return (
                     <div key={category.id} className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium">{category.name}</span>
+                        <div className="flex items-center gap-1">
+                          <div
+                            className="h-2.5 w-2.5 rounded-full shrink-0"
+                            style={{ backgroundColor: category.color }}
+                          />
+                          <span className="font-medium">{category.name}</span>
+                          <EditBudgetCategoryModal category={category} />
+                        </div>
                         <div className="flex items-center gap-2">
                           <span
                             className={
@@ -227,7 +294,7 @@ export default function BudgetPage() {
                             {formatCurrency(category.spent)} /{" "}
                             {formatCurrency(category.planned)}
                           </span>
-                          <EditBudgetSpentModal category={category} />
+                          <EditBudgetPlannedModal category={category} />
                         </div>
                       </div>
                       <div className="relative">
@@ -273,6 +340,104 @@ export default function BudgetPage() {
                 </div>
               </div>
               <Progress value={percentUsed} className="h-3" />
+            </CardContent>
+          </Card>
+
+          {/* Payment History */}
+          <Card
+            className="mt-6 border-0 shadow-sm animate-fade-up"
+            style={{ animationDelay: "0.5s" }}
+          >
+            <CardHeader>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <CardTitle className="font-display text-xl">
+                  Histórico de Pagamentos
+                </CardTitle>
+                <div className="flex gap-2">
+                  <Select value={periodFilter} onValueChange={setPeriodFilter}>
+                    <SelectTrigger className="h-8 w-[110px] text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PERIOD_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value} className="text-xs">
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="h-8 w-[150px] text-xs">
+                      <SelectValue placeholder="Categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all" className="text-xs">Todas as categorias</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id} className="text-xs">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="h-2 w-2 rounded-full"
+                              style={{ backgroundColor: cat.color }}
+                            />
+                            {cat.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {paymentsLoading ? (
+                <p className="text-sm text-muted-foreground">Carregando...</p>
+              ) : filteredPayments.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  {payments.length === 0
+                    ? "Nenhum pagamento registrado. Use \"Novo pagamento\" para lançar."
+                    : "Nenhum pagamento encontrado para os filtros selecionados."}
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {filteredPayments.map((payment) => (
+                    <div
+                      key={payment.id}
+                      className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div>
+                          <p className="text-sm font-medium">
+                            {payment.categoryName}
+                          </p>
+                          {payment.description && (
+                            <p className="text-xs text-muted-foreground">
+                              {payment.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="text-xs text-muted-foreground">
+                          {formatDate(payment.date)}
+                        </span>
+                        <span className="text-sm font-semibold">
+                          {formatCurrency(payment.amount)}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                          disabled={deletePayment.isPending}
+                          onClick={() => handleDeletePayment(payment.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </>

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find 'C:\\\\Users\\\\Thais Fontes\\\\Programação\\\\wedding-planner\\\\src' -type f -name *payment* -o -name *pagamento*)"
+    ]
+  }
+}

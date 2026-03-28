@@ -11,7 +11,6 @@ import { Card, CardContent } from "../components/ui/card";
 import { useAuth } from "../contexts/AuthContext";
 import { authService } from "../services/authService";
 import { weddingService } from "../services/weddingService";
-import { toast } from "sonner";
 
 const schema = z.object({
   email: z.string().email("E-mail inválido"),
@@ -25,6 +24,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const {
     register,
@@ -34,6 +34,7 @@ export default function LoginPage() {
 
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
+    setLoginError(null);
     try {
       const response = await authService.login(data);
       login(response.token, response.user);
@@ -45,7 +46,7 @@ export default function LoginPage() {
         navigate("/home", { replace: true });
       }
     } catch {
-      toast.error("E-mail ou senha incorretos. Tente novamente.");
+      setLoginError("Email ou senha incorretos.");
     } finally {
       setIsLoading(false);
     }
@@ -126,6 +127,12 @@ export default function LoginPage() {
                   </p>
                 )}
               </div>
+
+              {loginError && (
+                <p className="text-sm text-destructive text-center">
+                  {loginError}
+                </p>
+              )}
 
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (

@@ -68,7 +68,7 @@ api.interceptors.response.use(
       headers: error.response?.headers,
     });
 
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && error.config?.url !== "/auth/login") {
       // Token expirado - redirecionar para login
       window.location.href = "/login";
     }
