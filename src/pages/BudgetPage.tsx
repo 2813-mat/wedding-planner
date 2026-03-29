@@ -91,7 +91,7 @@ export default function BudgetPage() {
     return (
       <div className="mx-auto max-w-6xl">
         <header className="mb-8 animate-fade-up">
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h1 className="font-display text-4xl font-semibold">Orçamento</h1>
               <p className="mt-1 text-muted-foreground">
@@ -112,7 +112,7 @@ export default function BudgetPage() {
   return (
     <div className="mx-auto max-w-6xl">
       <header className="mb-8 animate-fade-up">
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h1 className="font-display text-4xl font-semibold">Orçamento</h1>
             <p className="mt-1 text-muted-foreground">
@@ -274,7 +274,7 @@ export default function BudgetPage() {
 
                   return (
                     <div key={category.id} className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
+                      <div className="flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-1">
                           <div
                             className="h-2.5 w-2.5 rounded-full shrink-0"
@@ -283,7 +283,7 @@ export default function BudgetPage() {
                           <span className="font-medium">{category.name}</span>
                           <EditBudgetCategoryModal category={category} />
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 pl-4 sm:pl-0">
                           <span
                             className={
                               isOverBudget
@@ -403,36 +403,36 @@ export default function BudgetPage() {
                   {filteredPayments.map((payment) => (
                     <div
                       key={payment.id}
-                      className="flex items-center justify-between rounded-lg bg-muted/50 px-4 py-3"
+                      className="rounded-lg bg-muted/50 px-4 py-3"
                     >
-                      <div className="flex items-center gap-3">
-                        <div>
-                          <p className="text-sm font-medium">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium">
                             {payment.categoryName}
                           </p>
                           {payment.description && (
-                            <p className="text-xs text-muted-foreground">
+                            <p className="truncate text-xs text-muted-foreground">
                               {payment.description}
                             </p>
                           )}
                         </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 shrink-0 text-muted-foreground hover:text-destructive"
+                          disabled={deletePayment.isPending}
+                          onClick={() => handleDeletePayment(payment.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
-                      <div className="flex items-center gap-4">
+                      <div className="mt-1 flex items-center gap-3">
                         <span className="text-xs text-muted-foreground">
                           {formatDate(payment.date)}
                         </span>
                         <span className="text-sm font-semibold">
                           {formatCurrency(payment.amount)}
                         </span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                          disabled={deletePayment.isPending}
-                          onClick={() => handleDeletePayment(payment.id)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
                       </div>
                     </div>
                   ))}

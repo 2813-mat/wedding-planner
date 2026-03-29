@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find 'C:\\\\Users\\\\Thais Fontes\\\\Programação\\\\wedding-planner\\\\src' -type f -name *payment* -o -name *pagamento*)"
+      "Bash(find 'C:\\\\Users\\\\Thais Fontes\\\\Programação\\\\wedding-planner\\\\src' -type f -name *payment* -o -name *pagamento*)",
+      "Bash(find /c/Users/Thais Fontes/Programação/wedding-planner -type f \\\\\\(-name *.css -o -name *.scss \\\\\\))",
+      "Bash(find /c/Users/Thais Fontes/Programação/wedding-planner/src -name *.css -o -name globals.*)"
     ]
   }
 }
