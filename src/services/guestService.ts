@@ -10,7 +10,7 @@ export interface Guest {
   relation: string;
   groupName: string;
   plusOne: boolean;
-  confirmed: number;
+  confirmed: number | null;
   adults: number;
   children: number;
   invitationSentAt: string | null;

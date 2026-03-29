@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Loader } from "lucide-react";
+import { Pencil, Loader } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -27,77 +27,90 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { useCreateGuest } from "../../hooks/useGuests";
+import { useUpdateGuest } from "../../hooks/useGuests";
 import { toast } from "../ui/use-toast";
-import type { CreateGuestDTO } from "../../services/guestService";
+import type { Guest } from "../../services/guestService";
 import {
   RELATION_OPTIONS,
   GROUP_OPTIONS,
   CONFIRMED_OPTIONS,
 } from "../../constants/guestOptions";
 
-const createGuestSchema = z.object({
+const schema = z.object({
   fullName: z.string().min(1, "Nome é obrigatório"),
   email: z.string().email("Email inválido").optional().or(z.literal("")),
   phone: z.string().optional(),
   relation: z.string().optional(),
   groupName: z.string().optional(),
-  confirmed: z.coerce.number().int().optional(),
-  adults: z.coerce.number().int().min(0).optional(),
-  children: z.coerce.number().int().min(0).optional(),
+  confirmed: z.coerce.number().int(),
+  adults: z.coerce.number().int().min(0),
+  children: z.coerce.number().int().min(0),
 });
 
-type FormValues = z.infer<typeof createGuestSchema>;
+type FormValues = z.infer<typeof schema>;
 
-const defaultValues: FormValues = {
-  fullName: "",
-  email: "",
-  phone: "",
-  relation: "",
-  groupName: "",
-  confirmed: 0,
-  adults: 1,
-  children: 0,
-};
-
-interface CreateGuestModalProps {
-  trigger?: React.ReactNode;
+interface EditGuestModalProps {
+  guest: Guest;
 }
 
-export function CreateGuestModal({ trigger }: CreateGuestModalProps) {
+export function EditGuestModal({ guest }: EditGuestModalProps) {
   const [open, setOpen] = useState(false);
-  const createGuest = useCreateGuest();
+  const updateGuest = useUpdateGuest();
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(createGuestSchema),
-    defaultValues,
+    resolver: zodResolver(schema),
+    defaultValues: {
+      fullName: guest.fullName,
+      email: guest.email ?? "",
+      phone: guest.phone ?? "",
+      relation: guest.relation ?? "",
+      groupName: guest.groupName ?? "",
+      confirmed: guest.confirmed ?? 0,
+      adults: guest.adults ?? 1,
+      children: guest.children ?? 0,
+    },
   });
 
-  const onSubmit = async (values: FormValues) => {
-    const payload: CreateGuestDTO = {
-      fullName: values.fullName.trim(),
-      ...(values.email && { email: values.email.trim() }),
-      ...(values.phone && { phone: values.phone.trim() }),
-      ...(values.relation && { relation: values.relation }),
-      ...(values.groupName && { groupName: values.groupName }),
-      confirmed: values.confirmed ?? 0,
-      adults: values.adults ?? 1,
-      children: values.children ?? 0,
-    };
-
-    try {
-      await createGuest.mutateAsync(payload);
-      toast({
-        title: "Convidado criado",
-        description: `${values.fullName} foi adicionado com sucesso.`,
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        fullName: guest.fullName,
+        email: guest.email ?? "",
+        phone: guest.phone ?? "",
+        relation: guest.relation ?? "",
+        groupName: guest.groupName ?? "",
+        confirmed: guest.confirmed ?? 0,
+        adults: guest.adults ?? 1,
+        children: guest.children ?? 0,
       });
-      form.reset(defaultValues);
+    }
+  }, [open, guest, form]);
+
+  const onSubmit = async (values: FormValues) => {
+    try {
+      await updateGuest.mutateAsync({
+        id: Number(guest.id),
+        data: {
+          fullName: values.fullName.trim(),
+          email: values.email?.trim() || undefined,
+          phone: values.phone?.trim() || undefined,
+          relation: values.relation || undefined,
+          groupName: values.groupName || undefined,
+          confirmed: values.confirmed,
+          adults: values.adults,
+          children: values.children,
+        },
+      });
+      toast({
+        title: "Convidado atualizado",
+        description: `${values.fullName} foi atualizado com sucesso.`,
+      });
       setOpen(false);
     } catch {
       toast({
         variant: "destructive",
-        title: "Erro ao criar convidado",
-        description: "Não foi possível adicionar o convidado.",
+        title: "Erro ao atualizar",
+        description: "Não foi possível atualizar o convidado.",
       });
     }
   };
@@ -105,17 +118,14 @@ export function CreateGuestModal({ trigger }: CreateGuestModalProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger ?? (
-          <Button size="sm" className="gap-2">
-            <Plus className="h-4 w-4" />
-            Novo convidado
-          </Button>
-        )}
+        <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground">
+          <Pencil className="h-3.5 w-3.5" />
+        </Button>
       </DialogTrigger>
 
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Adicionar convidado</DialogTitle>
+          <DialogTitle>Editar convidado</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -278,11 +288,11 @@ export function CreateGuestModal({ trigger }: CreateGuestModalProps) {
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={createGuest.isPending}>
-                {createGuest.isPending ? (
+              <Button type="submit" disabled={updateGuest.isPending}>
+                {updateGuest.isPending ? (
                   <Loader className="h-4 w-4 animate-spin" />
                 ) : (
-                  "Adicionar"
+                  "Salvar"
                 )}
               </Button>
             </div>
