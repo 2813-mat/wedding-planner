@@ -20,6 +20,7 @@ import { useVendors } from "../hooks/useVendors";
 import { VendorStatusFilter } from "../components/vendors/VendorStatusFilter";
 import { CreateVendorModal } from "../components/vendors/CreateVendorModal";
 import { EditVendorModal } from "../components/vendors/EditVendorModal";
+import { DeleteVendorButton } from "../components/vendors/DeleteVendorButton";
 import { useState } from "react";
 import type { VendorCategory } from "../constants/vendorCategories";
 
@@ -208,6 +209,7 @@ export default function VendorsPage() {
                       {status.label}
                     </Badge>
                     <EditVendorModal vendor={vendor} />
+                    <DeleteVendorButton vendor={vendor} />
                   </div>
                 </div>
               </CardHeader>
